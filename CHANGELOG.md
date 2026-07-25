@@ -10,7 +10,25 @@ Implementations should pin a commit.
 
 ## [Unreleased]
 
+### Changed
+
+- **`sha2` 0.10 to 0.11 and `hmac` 0.12 to 0.13** (RustCrypto `digest` 0.11).
+  `new_from_slice` moved from the `Mac` trait to `KeyInit`; that rename is the
+  entire migration. Both crates are used only by `signet-core` and nothing
+  transitive depends on them, so there is no duplicate-version fallout. MSRV
+  1.91 still holds.
+
+  Verified byte-for-byte: the commitment, disclosed key, derived MAC key and
+  truncated tag are identical before and after. **Nothing on the wire changed.**
+
 ### Added
+
+- **Known-answer tests for the wire values (`crates/core/tests/vectors.rs`).**
+  The existing tests check that the code agrees with itself, which stays green
+  if a change moves every derived value together — a swapped domain separator, a
+  different truncation end, a dependency major that alters an output. These pin
+  the absolute bytes of the commitment, the disclosed key, the derived MAC key
+  and the tag, so that class of silent wire drift fails loudly instead.
 
 - **`signet-crypto` — the first post-quantum primitive.** FN-DSA-512 key
   generation, signing, verification, and certificate issuance, wrapping the

@@ -29,7 +29,7 @@ spec, architecture, integration guides.
 ```bash
 git clone https://github.com/keshavashiya/signet.git
 cd signet
-cargo test --workspace     # 101 tests, no network, no hardware, no C toolchain
+cargo test --workspace     # 105 tests, no network, no hardware, no C toolchain
 
 # What does authenticity cost on a 200-byte lossy link?
 cargo run --bin signet -- sim
@@ -152,12 +152,12 @@ refused. See [`docs/protocol/time.md`](docs/src/protocol/time.md).
 **Alpha — Airtime and Protocol complete.** The protocol is specified and
 implemented end to end: real FN-DSA-512 certificates, TESLA chains, the
 security condition, erasure-coded fragmentation, and a verified fact store.
-101 tests, no radio yet.
+105 tests, no radio yet.
 
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
 | **Airtime** | What authenticity costs on a lossy link | ✅ done | `signet sim` |
-| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 101 tests |
+| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ next | two T-Beams |
 | **App** | The thing a person holds | ⬜ | five buttons, offline map |
 | **Clock** | Time sync without infrastructure | ⬜ | the research contribution |
