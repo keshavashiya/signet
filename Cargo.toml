@@ -30,7 +30,7 @@ signet-crypto = { path = "crates/crypto", version = "0.1.0" }
 # Hashing / MAC. Both are no_std-capable and pure Rust — the whole point of
 # the TESLA path is that it needs nothing but a hash function.
 sha2 = { version = "0.10", default-features = false }
-hmac = { version = "0.12", default-features = false }
+hmac = { version = "0.13", default-features = false }
 
 # Erasure coding for multi-frame objects. Availability, not integrity — a
 # wrongly reconstructed object still fails its MAC. Taken as a dependency
