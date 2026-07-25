@@ -10,3 +10,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # The `msrv` job pins a Rust toolchain version, not a semver action
+      # release. Dependabot reads `@1.91` as semver and "upgrades" it to a
+      # Rust version that does not exist, which fails the job it exists to
+      # protect. MSRV is a deliberate minor-version event moved by hand
+      # alongside Cargo.toml `rust-version`, README, and CHANGELOG.
+      - dependency-name: dtolnay/rust-toolchain
