@@ -12,9 +12,11 @@ all = { level = "deny", priority = -1 }
 [workspace.package]
 version = "0.1.0"
 edition = "2021"
-# MSRV policy: current stable and the two prior minor releases (N, N-1, N-2).
-# Verified in CI by the `msrv` job. Bumps are a minor-version event and must
-# move workspace rust-version + README + CHANGELOG together.
+# MSRV: 1.91, verified in CI by the `msrv` job against the committed lockfile.
+# The pin moves only when a dependency forces it, never on a schedule — sitting
+# below current stable costs nothing for as long as it still builds, and every
+# minor it lags is a toolchain someone can still use. A bump is a
+# minor-version event and must move rust-version + README + CHANGELOG together.
 rust-version = "1.91"
 authors = ["Keshav Ashiya"]
 license = "MIT"

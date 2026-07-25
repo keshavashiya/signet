@@ -2,8 +2,12 @@
 #
 # Runs in CI as the `cargo-deny` job. Verifies:
 #   - licenses are on the allow-list (no GPL/AGPL/SSPL contamination)
-#   - no known security advisories (overlaps with cargo-audit; we keep both
-#     because cargo-deny also catches yanked crates and unmaintained deps)
+#   - no known security advisories, from the same RustSec database cargo-audit
+#     reads. cargo-deny is the superset: it gates licenses, bans and sources
+#     too, so the `Security audit` job beside it is deliberate redundancy on
+#     the check that matters most rather than extra coverage. Both land in
+#     about 20s once the CI cache is warm, which is what makes keeping the
+#     second one cheap enough to be worth it.
 #   - no banned or duplicate dependencies sneaking in
 #   - source registries are limited to crates.io (no random git deps)
 #
