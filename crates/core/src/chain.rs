@@ -146,7 +146,7 @@ pub fn derive_mac_key(k: &ChainKey) -> ChainKey {
 
 /// Authenticate `msg` under `mac_key`, truncated to [`MAC_LEN`].
 pub fn mac(mac_key: &ChainKey, msg: &[u8]) -> Mac {
-    let mut m = <HmacSha256 as hmac::Mac>::new_from_slice(mac_key)
+    let mut m = <HmacSha256 as hmac::KeyInit>::new_from_slice(mac_key)
         .expect("HMAC accepts keys of any length");
     m.update(msg);
     let full = m.finalize().into_bytes();
@@ -157,7 +157,7 @@ pub fn mac(mac_key: &ChainKey, msg: &[u8]) -> Mac {
 
 /// Constant-time check of a truncated MAC.
 pub fn verify_mac(mac_key: &ChainKey, msg: &[u8], tag: &Mac) -> bool {
-    let mut m = <HmacSha256 as hmac::Mac>::new_from_slice(mac_key)
+    let mut m = <HmacSha256 as hmac::KeyInit>::new_from_slice(mac_key)
         .expect("HMAC accepts keys of any length");
     m.update(msg);
     m.verify_truncated_left(tag).is_ok()

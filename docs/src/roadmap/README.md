@@ -7,7 +7,7 @@ right response is to change the design, not to keep building on it.
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
 | **Airtime** | What authenticity costs on a 200-byte lossy link | ✅ done | `signet sim` |
-| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 101 tests |
+| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ next | Measured airtime on two T-Beams |
 | **App** | The thing a person holds | ⬜ | Five buttons, offline map |
 | **Clock** | Time sync without infrastructure | ⬜ | The research contribution |
