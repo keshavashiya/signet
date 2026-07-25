@@ -1,0 +1,15 @@
+[book]
+title = "Signet"
+authors = ["Keshav Ashiya"]
+description = "A post-quantum authenticity layer for off-grid mesh networks"
+language = "en"
+
+[output.html]
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
+edit-url-template = "https://github.com/keshavashiya/signet/edit/main/docs/{path}"
+git-repository-url = "https://github.com/keshavashiya/signet"
+site-url = "/signet/"
+
+[output.html.search]
+limit-results = 30

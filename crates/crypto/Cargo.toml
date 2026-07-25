@@ -1,0 +1,20 @@
+[package]
+name = "signet-crypto"
+description = "Post-quantum signature and certificate operations for the Signet protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+signet-core = { workspace = true }
+fn-dsa = { workspace = true }
+rand_core = { workspace = true }

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/keshavashiya/signet/security/advisories/new
+    about: Do not open a public issue. Report it privately here — see SECURITY.md.
+  - name: Protocol design critique
+    url: https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md
+    about: Attacks on the spec are welcome and belong in public. Open a normal issue.

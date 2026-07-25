@@ -1,0 +1,26 @@
+[package]
+name = "signet-core"
+description = "Wire format, TESLA hash chains, and the author-owned fact store for the Signet protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+sha2 = { workspace = true }
+hmac = { workspace = true }
+reed-solomon-erasure = { workspace = true }
+
+[features]
+# `core` must stay no_std-capable: it has to run on an ESP32 inside Meshtastic
+# firmware as well as on a phone. `std` only turns on error-trait impls.
+default = ["std"]
+std = []

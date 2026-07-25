@@ -1,0 +1,50 @@
+[workspace]
+resolver = "2"
+members = ["crates/core", "crates/crypto", "crates/cli"]
+
+[workspace.lints.rust]
+unused_must_use = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+# MSRV policy: current stable and the two prior minor releases (N, N-1, N-2).
+# Verified in CI by the `msrv` job. Bumps are a minor-version event and must
+# move workspace rust-version + README + CHANGELOG together.
+rust-version = "1.91"
+authors = ["Keshav Ashiya"]
+license = "MIT"
+repository = "https://github.com/keshavashiya/signet"
+homepage = "https://github.com/keshavashiya/signet"
+keywords = ["mesh", "post-quantum", "offline", "authentication", "lora"]
+categories = ["cryptography", "network-programming", "no-std"]
+
+[workspace.dependencies]
+signet-core = { path = "crates/core", version = "0.1.0" }
+signet-crypto = { path = "crates/crypto", version = "0.1.0" }
+
+# Hashing / MAC. Both are no_std-capable and pure Rust — the whole point of
+# the TESLA path is that it needs nothing but a hash function.
+sha2 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
+
+# Erasure coding for multi-frame objects. Availability, not integrity — a
+# wrongly reconstructed object still fails its MAC. Taken as a dependency
+# rather than hand-rolled because GF(2^8) Reed-Solomon is exactly the kind of
+# maths that corrupts silently when it is subtly wrong.
+reed-solomon-erasure = { version = "6", default-features = false }
+
+# FN-DSA-512 (Falcon-512): pure Rust, no_std, by the author of the Falcon
+# reference implementation. No C toolchain, so `cargo test` keeps working with
+# no system dependencies. See docs/src/protocol/sizes.md for the stability caveat.
+fn-dsa = "0.4"
+rand_core = { version = "0.6", features = ["getrandom"] }
+
+# CLI + simulator (std-only, cli crate). The simulator is analytic, not Monte
+# Carlo — closed-form binomials are both exact and one dependency lighter.
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
