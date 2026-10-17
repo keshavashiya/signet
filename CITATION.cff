@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Signet: a post-quantum authenticity layer for off-grid mesh networks"
+authors:
+  - family-names: Ashiya
+    given-names: Keshav
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/keshavashiya/signet"
