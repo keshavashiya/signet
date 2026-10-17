@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
 
+By Keshav Ashiya
+
 **In a disaster, you cannot tell whether the evacuation order is real.**
 
 Signet is a post-quantum authenticity layer for off-grid mesh networks. It rides
