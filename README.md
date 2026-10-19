@@ -298,7 +298,7 @@ The project's ten rules; the full text and the reasons are in
 
 ## Roadmap
 
-See [`docs/src/roadmap`](docs/src/roadmap/README.md). In short, Signet makes a
+See [`docs/src/roadmap`](docs/src/roadmap/index.md). In short, Signet makes a
 warning checkable while the network is down and leaves carrying it to the apps
 people already use. The roadmap page also lists what is still open.
 

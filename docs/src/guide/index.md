@@ -107,5 +107,5 @@ let reports = store.by_kind(BRIDGE_OUT).count();  // "3 people report…"
 ## Next
 
 - [Integration](integration.md): getting this into an app that already exists
-- [Protocol overview](../protocol/README.md): how the two classes work
-- [Roadmap](../roadmap/README.md): what is built and what is not
+- [Protocol overview](../protocol/index.md): how the two classes work
+- [Roadmap](../roadmap/index.md): what is built and what is not

@@ -2,14 +2,14 @@
 
 [Introduction](intro.md)
 
-- [Quick Start](guide/README.md)
+- [Quick Start](guide/index.md)
 - [Integration](guide/integration.md)
 
 ---
 
 ## Protocol
 
-- [Overview](protocol/README.md)
+- [Overview](protocol/index.md)
 - [Time & the Security Condition](protocol/time.md)
 - [Threat Model](protocol/threat-model.md)
 - [Primitive Sizes](protocol/sizes.md)
@@ -24,10 +24,10 @@
 
 ## Development
 
-- [Contributing](development/README.md)
+- [Contributing](development/index.md)
 
 ---
 
 ## Roadmap
 
-- [Phases](roadmap/README.md)
+- [Phases](roadmap/index.md)

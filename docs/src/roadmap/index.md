@@ -254,6 +254,6 @@ verifies and shows who sent what, and it is not a new messenger.
 
 ## Explicitly not on the roadmap
 
-Covered by the [hard rules](../development/README.md#hard-rules): no blockchain
+Covered by the [hard rules](../development/index.md#hard-rules): no blockchain
 or token, no custom cryptographic primitives, no revocation PKI, no CRDT
 library, no new mesh routing, no servers or accounts, and no voice or video.

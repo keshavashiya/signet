@@ -83,6 +83,6 @@ dependencies; that is why the FN-DSA implementation is pure Rust.
 Do not open a public issue for a vulnerability. Report it privately through
 GitHub's [Security tab](https://github.com/keshavashiya/signet/security/advisories/new).
 
-Critique of the [protocol](../protocol/README.md) design is welcome as a public
+Critique of the [protocol](../protocol/index.md) design is welcome as a public
 issue. The specification is written down in full so it can be reviewed before
 anyone uses it in the field.

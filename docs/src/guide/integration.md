@@ -15,7 +15,7 @@ around it.
 
 The roadmap starts from the last section here, the maintainers' three-line
 diff. Paths 1 and 2 need a Signet app of our own, so they are the fallback if
-no host will carry Signet ([Roadmap](../roadmap/README.md)).
+no host will carry Signet ([Roadmap](../roadmap/index.md)).
 
 ### 1. Meshtastic node owner: needs no one's cooperation
 

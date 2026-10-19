@@ -175,7 +175,7 @@ Trust-on-first-use, upgraded out-of-band:
 Organisational roots are distributed during onboarding, while the network
 still works, which an emergency operations centre can organise. Pinning is
 implemented; the QR and NFC exchange and the badges belong to the host app and
-are not built ([Integration](docs/src/roadmap/README.md)).
+are not built ([Integration](docs/src/roadmap/index.md)).
 
 ### 2.5 Signature suite registry
 

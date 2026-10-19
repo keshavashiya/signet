@@ -38,7 +38,7 @@ already trusts.
 
 ## What it costs
 
-The [simulator](guide/README.md) is where to start. At Meshtastic's LongFast
+The [simulator](guide/index.md) is where to start. At Meshtastic's LongFast
 preset with 20% frame loss:
 
 | Scheme | Post-quantum | Effective airtime | Ratio |
@@ -57,11 +57,11 @@ sizes and the Semtech time-on-air formula; no radio has measured them yet.
 
 ## Where to go next
 
-- [Quick Start](guide/README.md): build it, run the model
-- [Protocol overview](protocol/README.md): how the two message classes work
+- [Quick Start](guide/index.md): build it, run the model
+- [Protocol overview](protocol/index.md): how the two message classes work
 - [Time & the Security Condition](protocol/time.md): the hardest open problem
 - [Threat Model](protocol/threat-model.md): including what Signet does *not* defend
-- [Roadmap](roadmap/README.md): what Signet takes on, and what is built
+- [Roadmap](roadmap/index.md): what Signet takes on, and what is built
 
 ## Status
 
