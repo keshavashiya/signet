@@ -45,8 +45,8 @@ scheme             pq  trailer  frames    air ms  deliver    eff ms  note
 ----------------------------------------------------------------------------------------------------
 Ed25519            NO       64       1      1026    80.0%      1283  1x  what every mesh ships today
 TESLA (SHA-256)   yes       48       1       903    80.0%      1129  1x  16B MAC + 32B disclosed key
-SQIsign-I         yes      204     3/2      5904    89.6%      6590  6x  NIST round 3; slow to sign
-MAYO-1            yes      392     3/2      5904    89.6%      6590  6x  NIST round 3
+SQIsign-I         yes      200     3/2      5904    89.6%      6590  6x  NIST round 3; slow to sign
+MAYO-1            yes      464     4/3      7873    81.9%      9610  9x  NIST round 3
 FN-DSA-512        yes      666     6/4     11809    90.1%     13105  12x  FIPS 206 draft
 ML-DSA-44         yes     2420   15/11     29522    83.6%     35323  31x  FIPS 204, the safe default
 SLH-DSA-128s      yes     7856   45/34     88566    82.6%    107238  95x  FIPS 205, hash-based root
@@ -139,7 +139,7 @@ too much the design falls back to Class B.
 The security condition and the interval arithmetic are built
 ([`time.rs`](crates/core/src/time.rs)). The time sources, the Class B fallback,
 and peer bounds that stay safe when some peers lie are open work (the Clock
-phase, and [PROTOCOL.md §14](PROTOCOL.md#14-open-questions)). Until then a
+phase, and [PROTOCOL.md Section 14](PROTOCOL.md#14-open-questions)). Until then a
 receiver refuses what it cannot check: `signet demo --uncertainty-ms 600000`
 shows every frame correctly refused. See
 [`docs/protocol/time.md`](docs/src/protocol/time.md).
@@ -248,7 +248,7 @@ Signet can search for it.
 
 A 16-byte MAC makes a footer of about 55 characters; a 666-byte signature
 would need about 900, so only routine `Tesla` traffic uses a footer. An
-evacuation order must be `Signed` ([PROTOCOL.md §4.1](PROTOCOL.md#41-choosing-a-class))
+evacuation order must be `Signed` ([PROTOCOL.md Section 4.1](PROTOCOL.md#41-choosing-a-class))
 and never travels this way. A footer also keeps TESLA's timing: a Signet client
 has to see it before that interval's key is disclosed, 30–60 s at the default
 schedule, and it verifies once a later message brings the key. The format is in

@@ -32,7 +32,7 @@ independent reports of the same danger show as agreeing.
 ## How it is solved
 
 Item numbers point to
-[PROTOCOL.md §14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions).
+[PROTOCOL.md Section 14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions).
 
 | The problem | Signet's answer | Where it stands |
 |---|---|---|
@@ -62,7 +62,7 @@ The protocol is the same for both. What changes:
 | Time sources | Power and GPS are often lost, indoors especially | The internet is cut; GPS usually still works unless it is jammed |
 
 Each difference is a phase's job or an open question in
-[PROTOCOL.md §14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions):
+[PROTOCOL.md Section 14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions):
 
 - **Trust.** Any pinned root already works, but the roles and the badges assume
   an emergency service (item 13).
@@ -83,7 +83,7 @@ what both scenarios need before any work that serves only one of them.
 
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
-| **Airtime** | What authenticity costs on a 200-byte lossy link | ✅ done | `signet sim` |
+| **Airtime** | What authenticity costs on a 237-byte lossy link | ✅ done | `signet sim` |
 | **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
 | **Warnings** | Verified warnings that work in a disaster and in a shutdown | ⬜ next | One end-to-end test per scenario |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ | Measured airtime on two T-Beams |
@@ -151,7 +151,7 @@ any work that serves only one of them and builds only what the two tests below
 need, so it adds no transport, app or new layer.
 
 - The `Signed` send path, with its framing decided
-  ([§14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions) item 12)
+  ([Section 14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions) item 12)
 - Both halves of the security condition: the sender discloses on its earliest
   possible time (item 8)
 - Chain rollover signed by the operational key (item 9), and `Signed` for a

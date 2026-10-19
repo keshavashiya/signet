@@ -45,7 +45,7 @@ from a checklist instead of scanning prose.
 
 | Notation | Meaning |
 |---|---|
-| `K[i]` | Chain key for interval `i` ([§5.1](#51-chain-construction)) |
+| `K[i]` | Chain key for interval `i` ([Section 5.1](#51-chain-construction)) |
 | `H(x)` | SHA-256 of `x` |
 | `H^n(x)` | `H` applied `n` times; `H^0(x) = x` |
 | `a \|\| b` | Concatenation |
@@ -88,7 +88,7 @@ These are inherited from the medium, not chosen:
 
 1. Every message is attributable to a verifiable sender.
 2. Post-quantum authentication throughout. Payloads are plaintext; when
-   confidentiality is added it must be post-quantum too ([§8](#8-confidentiality-planned)).
+   confidentiality is added it must be post-quantum too ([Section 8](#8-confidentiality-planned)).
 3. Routine traffic costs a small constant number of bytes, independent of the
    signature scheme in use.
 4. Verification works with no network access whatsoever.
@@ -125,11 +125,11 @@ operational cert expires.
 | Offset | Field | Size | Notes |
 |---|---|---|---|
 | 0 | `version` | 1 B | 1 |
-| 1 | `alg` | 1 B | Signature suite ([§2.5](#25-signature-suite-registry)) |
+| 1 | `alg` | 1 B | Signature suite ([Section 2.5](#25-signature-suite-registry)) |
 | 2 | `issuer_id` | 8 B | Truncated SHA-256 of the root public key |
 | 10 | `role_bits` | 2 B | Civilian / responder / EOC |
 | 12 | `valid_until` | 4 B | Beacon round number, not wall clock |
-| 16 | `tesla_root` | 32 B | Chain commitment, `K[0]` ([§5](#5-tesla-operation)) |
+| 16 | `tesla_root` | 32 B | Chain commitment, `K[0]` ([Section 5](#5-tesla-operation)) |
 | 48 | `sign_pubkey` | 2 + n B | Length-prefixed. 897 B at FN-DSA-512 |
 | … | `kem_pubkey` | 2 + n B | Length-prefixed. 0 = absent; 1184 B at ML-KEM-768 |
 | … | `sig` | 2 + n B | Length-prefixed. 666 B at FN-DSA-512 |
@@ -140,7 +140,7 @@ with an FN-DSA-512 key and no KEM key is **1617 bytes**.
 
 The three cryptographic fields are length-prefixed rather than fixed-width
 because the signature suite is not settled: FIPS 206 is draft, and a NIST
-round-3 candidate with a 204-byte signature would change these sizes entirely.
+round-3 candidate with a 200-byte signature would change these sizes entirely.
 Six bytes of framing on an object that travels out of band is cheap
 protection against a wire-format break.
 
@@ -213,10 +213,10 @@ payload byte lost on a 237-byte link.
 | Offset | Size | Field |
 |---|---|---|
 | 0 | 4 bits | `version`, value 1 |
-| 0 | 4 bits | `class`, see [§4](#4-message-classes) |
+| 0 | 4 bits | `class`, see [Section 4](#4-message-classes) |
 | 1 | 8 B | `sender`, the truncated operational cert hash |
 | 9 | 4 B | `interval`, the TESLA interval index, big-endian |
-| 13 | … | body, then trailer (class-specific, [§4](#4-message-classes)) |
+| 13 | … | body, then trailer (class-specific, [Section 4](#4-message-classes)) |
 
 Decoders MUST reject a short buffer, an unknown version, and an unknown class.
 Everything crossing the radio boundary is hostile until authenticated.
@@ -230,8 +230,8 @@ Everything crossing the radio boundary is hostile until authenticated.
 | Field | Size | Notes |
 |---|---|---|
 | `flags` | 1 B | Bit 0: a 32-byte disclosure follows the MAC |
-| `seq` | 4 B | Author-local counter, big-endian ([§9.2](#92-merge-semantics)) |
-| `kind` | 2 B | Fact kind ([§9.1](#91-fact-kinds)) |
+| `seq` | 4 B | Author-local counter, big-endian ([Section 9.2](#92-merge-semantics)) |
+| `kind` | 2 B | Fact kind ([Section 9.1](#91-fact-kinds)) |
 
 A 30-byte status beacon is **66 bytes**, or **98** on the frame that carries a
 disclosure. Both fit one Meshtastic frame with room to spare.
@@ -302,7 +302,7 @@ Grover, which is not defensible for a protocol whose premise is post-quantum.
 The 16-byte MAC is a different case: guessing a tag needs a receiver to check
 each guess, so Grover does not apply, while a chain preimage can be searched
 offline for as long as a receiver hears nothing newer.
-The per-message cost stays at 16 bytes because disclosure amortises ([§5.3](#53-sending)).
+The per-message cost stays at 16 bytes because disclosure amortises ([Section 5.3](#53-sending)).
 
 `K[0]` is the commitment. It is published in the cert, already public, and MUST
 NOT be disclosed: a receiver anchored there would correctly reject it as
@@ -328,16 +328,16 @@ During interval `i`, for each message:
    fingerprint or the claimed interval and still verify.
 2. Append `tag`.
 3. On the **first** frame of interval `i` only, set the disclosure flag and
-   append `K[i - d]`, where `d` is the disclosure delay ([§6.3](#63-bounding-uncertainty)) and `i - d ≥ 1`.
+   append `K[i - d]`, where `d` is the disclosure delay ([Section 6.3](#63-bounding-uncertainty)) and `i - d ≥ 1`.
 
 Disclosure is per-interval, not per-message. A sender emitting five frames in
 one interval would otherwise repeat the same 32 bytes five times; instead the
 remaining four carry the 16-byte MAC alone. Receivers do not care which frames
-carry it, because a missed disclosure is recovered from any later one ([§5.5](#55-loss-tolerance)).
+carry it, because a missed disclosure is recovered from any later one ([Section 5.5](#55-loss-tolerance)).
 
 ### 5.4 Receiving
 
-1. **Check the security condition ([§6.2](#62-the-security-condition)). If it fails, discard.** Skipping this
+1. **Check the security condition ([Section 6.2](#62-the-security-condition)). If it fails, discard.** Skipping this
    step makes the MAC meaningless: an attacker waits for disclosure, then forges.
 2. Buffer the message; it cannot be verified yet.
 3. On receiving `K[j]`: verify `H^(j - anchor_interval)(K[j]) == anchor`. This
@@ -396,7 +396,7 @@ is Clock work **[PLANNED]**.
 
 Nodes with tight bounds propagate tightness through the mesh on contact, and a
 liar's bound propagates the same way, so intersection is only as safe as every
-peer in it ([§14](#14-open-questions)). A beacon value proves time has *passed*,
+peer in it ([Section 14](#14-open-questions)). A beacon value proves time has *passed*,
 never that it has not. It is a floor, combined with local monotonic time,
 never a sole authority.
 
@@ -469,7 +469,7 @@ Signal deployments do. Three properties keep it affordable:
 
 1. **Peer KEM public keys are cached forever.** Only the first exchange with a
    given peer pays the 1184-byte cost.
-2. **Fragments are erasure coded** ([§7](#7-fragmentation)).
+2. **Fragments are erasure coded** ([Section 7](#7-fragmentation)).
 3. **Handshake fragments piggyback on routine beacons.** The exchange completes
    in the background over minutes; the user never waits.
 
@@ -478,12 +478,12 @@ Signal deployments do. Three properties keep it affordable:
 ## 9. Fact payloads
 
 Payloads are CBOR maps with single-character keys. The store
-([§9.2](#92-merge-semantics)) treats them as opaque; only the app layer
+([Section 9.2](#92-merge-semantics)) treats them as opaque; only the app layer
 interprets them.
 
 > **[PLANNED]** The schema below is not yet encoded or decoded anywhere. The
 > store handles payloads as opaque bytes today, so the merge semantics in
-> [§9.2](#92-merge-semantics) are implemented but this schema is not.
+> [Section 9.2](#92-merge-semantics) are implemented but this schema is not.
 
 ```json
 { "t": 0, "s": 2, "p": [51.50, -0.12, 30], "n": 4, "r": [1, 3], "ttl": 12 }
@@ -499,7 +499,7 @@ interprets them.
 | `ttl` | Remaining hops or hours |
 
 About 30 bytes. With framing and a TESLA trailer that is 66 bytes, or 98 when
-a disclosure is attached ([§3.1](#31-tesla-body)), one frame either way.
+a disclosure is attached ([Section 3.1](#31-tesla-body)), one frame either way.
 
 ### 9.1 Fact kinds
 
@@ -541,46 +541,46 @@ checks the clock afterwards has no security at all: an attacker waits for the
 key to be disclosed and forges freely.
 
 ```text
- 1. Decode the 13-byte header                                          §3
+ 1. Decode the 13-byte header                                          Section 3
       buffer too short ................................. Truncated
       version != 1 .................................... UnknownVersion
       class not in {0, 1, 2} .......................... UnknownClass
 
- 2. Look up `sender` among pinned peers                                §2.4
+ 2. Look up `sender` among pinned peers                                Section 2.4
       not pinned ...................................... UnknownSender
 
- 3. Dispatch on class                                                  §4
+ 3. Dispatch on class                                                  Section 4
       Tesla ......... step 4        Signed ....... step 10
       Fragment ...... step 12       other ........ WrongClass
 
  ── Tesla ────────────────────────────────────────────────────────────
- 4. Read the flags byte; derive trailer length                         §3.1
+ 4. Read the flags byte; derive trailer length                         Section 3.1
  5. Split body from trailer
       fewer bytes than the flags imply ................ Truncated
- 6. Evaluate the security condition                                    §6.2
+ 6. Evaluate the security condition                                    Section 6.2
       fails, or no usable time bound .................. TooLate
- 7. If a disclosure is attached, verify it chains and advances         §5.4
+ 7. If a disclosure is attached, verify it chains and advances         Section 5.4
       does not chain, or does not advance ............. BadDisclosure
  8. Buffer the frame, awaiting its key
  9. If step 7 produced a valid disclosure: re-anchor, then for every
     buffered frame whose key is now derivable, verify its MAC and
-    merge into the store                                               §9.2
-      MAC fails ....................................... silent drop    §11.3
+    merge into the store                                               Section 9.2
+      MAC fails ....................................... silent drop    Section 11.3
 
  ── Signed ───────────────────────────────────────────── [PLANNED] ───
 10. Reassemble if fragmented, then verify the signature against the
-    sender's `sign_pubkey`                                             §2.2
+    sender's `sign_pubkey`                                             Section 2.2
 11. Merge. No buffering and no security condition: a signature is
     verifiable on arrival.
 
  ── Fragment ─────────────────────────────────────────────────────────
-12. Parse and validate the fragment header                             §7.1
+12. Parse and validate the fragment header                             Section 7.1
       self-inconsistent, or contradicts a fragment already
       seen for this `object_id` ....................... BadFragment
 13. Store the shard. If fewer than `data_shards` are held, stop.
 14. Reconstruct, then re-enter at step 1 with the recovered object.
       A reconstructed object is NOT trusted: it re-enters the same
-      pipeline and passes the same checks as anything off the air.     §7.1
+      pipeline and passes the same checks as anything off the air.     Section 7.1
 ```
 
 Three requirements that are easy to miss and expensive to get wrong:
@@ -608,12 +608,12 @@ legitimately count, log, or surface to a user.
 | Error | Raised when |
 |---|---|
 | `Truncated{need, got}` | Buffer is shorter than the structure claims |
-| `UnknownVersion(v)` | Version nibble is not 1 ([§13](#13-versioning)) |
-| `UnknownClass(c)` | Class nibble is not 0, 1 or 2 ([§4](#4-message-classes)) |
-| `UnknownAlg(a)` | Cert names a suite absent from [§2.5](#25-signature-suite-registry) |
-| `TrailingBytes(n)` | Bytes remain after a complete structure ([§2.2](#22-operational-cert)) |
+| `UnknownVersion(v)` | Version nibble is not 1 ([Section 13](#13-versioning)) |
+| `UnknownClass(c)` | Class nibble is not 0, 1 or 2 ([Section 4](#4-message-classes)) |
+| `UnknownAlg(a)` | Cert names a suite absent from [Section 2.5](#25-signature-suite-registry) |
+| `TrailingBytes(n)` | Bytes remain after a complete structure ([Section 2.2](#22-operational-cert)) |
 | `IntervalOutOfRange` | Requested interval lies beyond the generated chain |
-| `BadFragment` | Fragment header is self-inconsistent or contradicts one already seen ([§7.1](#71-fragment-header)) |
+| `BadFragment` | Fragment header is self-inconsistent or contradicts one already seen ([Section 7.1](#71-fragment-header)) |
 | `ObjectTooLarge(n)` | Object exceeds the 65535-byte ceiling of `object_len` |
 
 Decoding untrusted input **MUST NOT** panic, abort, or allocate in proportion to
@@ -624,10 +624,10 @@ bytes actually held.
 
 | Rejection | Meaning | Section |
 |---|---|---|
-| `WrongClass` | Well-formed, but not the class this path handles | [§4](#4-message-classes) |
-| `UnknownSender` | No pinned cert for this fingerprint | [§2.4](#24-trust-establishment) |
-| `TooLate` | Failed the security condition: the key could already be public | [§6.2](#62-the-security-condition) |
-| `BadDisclosure` | Disclosure does not chain to the anchor, or does not advance it | [§5.4](#54-receiving) |
+| `WrongClass` | Well-formed, but not the class this path handles | [Section 4](#4-message-classes) |
+| `UnknownSender` | No pinned cert for this fingerprint | [Section 2.4](#24-trust-establishment) |
+| `TooLate` | Failed the security condition: the key could already be public | [Section 6.2](#62-the-security-condition) |
+| `BadDisclosure` | Disclosure does not chain to the anchor, or does not advance it | [Section 5.4](#54-receiving) |
 
 ### 11.3 Silent drops
 
@@ -655,7 +655,7 @@ count them and **SHOULD NOT** display them individually.
 | Cert signing domain | `"signet/v1/cert"` |
 | Message signing domain | `"signet/v1/msg"` |
 | Interval length | 30 s (provisional; Clock decides) |
-| Disclosure delay `d` | 2 intervals by default; widening with uncertainty is planned ([§6.4](#64-degradation-planned)) |
+| Disclosure delay `d` | 2 intervals by default; widening with uncertainty is planned ([Section 6.4](#64-degradation-planned)) |
 | Chain length | 4096 intervals ≈ 34 h |
 | Cert lifetime | 30 days |
 | Erasure redundancy `r` | 0.30 |
@@ -672,8 +672,8 @@ Security level 1, in bytes:
 | Scheme | Public key | Signature / ct | Standard |
 |---|---|---|---|
 | Ed25519 | 32 | 64 | classical, **not PQ** |
-| SQIsign-I | 64 | 204 | NIST round 3 |
-| MAYO-1 | 614 | 392 | NIST round 3 |
+| SQIsign-I | 83 | 200 | NIST round 3 |
+| MAYO-1 | 1456 | 464 | NIST round 3 |
 | FN-DSA-512 | 897 | 666 | FIPS 206 (draft) |
 | ML-DSA-44 | 1312 | 2420 | FIPS 204 |
 | SLH-DSA-128s | 32 | 7856 | FIPS 205 |
@@ -703,25 +703,27 @@ Known open problems, numbered so other documents can cite them:
    would close this properly.
 2. **Interval length is unmeasured.** 30 s is a guess. Too short wastes airtime
    on disclosures; too long widens the buffering window and delays verification.
-3. **Burst loss is unmodelled.** [§7](#7-fragmentation)'s redundancy assumes independent loss. Real
-   links lose consecutive frames, which erasure coding across a small `k`
-   handles poorly. Interleaving may be required.
+3. **Burst loss is unmodelled.** The redundancy in [Section 7](#7-fragmentation)
+   assumes independent loss. Real links lose consecutive frames, which erasure
+   coding across a small `k` handles poorly. Interleaving may be required.
 4. **FN-DSA is a draft standard.** FIPS 206 is not final. If a round-3 candidate
-   with a 204-byte signature is standardised, the `Signed` class becomes
-   much cheaper and some of [§4.1](#41-choosing-a-class)'s tiering may become unnecessary.
+   with a 200-byte signature is standardised, the `Signed` class becomes
+   much cheaper and some of the tiering in [Section 4.1](#41-choosing-a-class) may
+   become unnecessary.
 5. **SQIsign signing latency is unmeasured on target hardware.** A compact
    signature helps little if signing takes seconds on a phone with a dying
    battery. This is Radio work.
 6. **Sybil resistance is absent.** Nothing stops an attacker generating
    unlimited unverified identities and flooding the mesh. Rate limiting that
    survives sybils without infrastructure is unsolved.
-7. **Peer time is not liar-safe.** [§6.3](#63-bounding-uncertainty)'s intersection never leaves a node's
-   own bound, but one overlapping liar chooses where inside it the node lands,
-   which can turn a correct `TooLate` into an acceptance. Marzullo's algorithm
-   tolerates up to `f` liars only while `f` is bounded, and item 6's sybils
-   unbound it. Candidate: count only peers whose certs chain to a pinned root.
+7. **Peer time is not liar-safe.** The intersection in
+   [Section 6.3](#63-bounding-uncertainty) never leaves a node's own bound, but one
+   overlapping liar chooses where inside it the node lands, which can turn a
+   correct `TooLate` into an acceptance. Marzullo's algorithm tolerates up to
+   `f` liars only while `f` is bounded, and item 6's sybils unbound it.
+   Candidate: count only peers whose certs chain to a pinned root.
 8. **The sender's half of the security condition is unspecified.**
-   [§6.2](#62-the-security-condition) bounds the receiver's clock. A sender whose clock runs fast
+   [Section 6.2](#62-the-security-condition) bounds the receiver's clock. A sender whose clock runs fast
    discloses `K[i]` while receivers with correct clocks still accept interval
    `i`, and a forged beacon floor (item 1) pushes a sender's clock exactly that
    way. `Sender::beacon` takes a single clock reading. Candidate: disclose only
@@ -737,13 +739,13 @@ Known open problems, numbered so other documents can cite them:
     Candidate: a sender that knows it is going down sends `Signed`.
 11. **A stale but valid disclosure drops its whole frame.** When a flood mesh
     delivers interval 5's frame before interval 4's, the older frame's
-    disclosure no longer advances the anchor, so [§5.4](#54-receiving) and R16–R17 discard it,
+    disclosure no longer advances the anchor, so [Section 5.4](#54-receiving) and R16–R17 discard it,
     payload included, although it would have verified later. Candidate: hash
     the anchor down to check the disclosure, ignore it and buffer the frame if
     it matches, and discard only on a mismatch. That changes R16 and R17.
 12. **The airtime model ignores per-fragment framing.** `signet sim` divides a
     multi-frame object by the full 237-byte frame, but every fragment frame
-    spends 13 + 7 bytes on headers ([§7.1](#71-fragment-header)), so a fragment holds 217. The fix
+    spends 13 + 7 bytes on headers ([Section 7.1](#71-fragment-header)), so a fragment holds 217. The fix
     waits on one `Signed` framing decision: whether a fragmented `Signed`
     object carries its own 13-byte header.
 13. **Trust roots beyond emergency services.** Any root a receiver pins works
@@ -754,26 +756,26 @@ Known open problems, numbered so other documents can cite them:
     carries the name the receiver gave the root when pinning it, so a warning
     reads as verified by that group.
 14. **Corroboration is unspecified.** The store keeps independent claims apart
-    ([§9.2](#92-merge-semantics)), the right base for "where is the danger": several people the
+    ([Section 9.2](#92-merge-semantics)), the right base for "where is the danger": several people the
     receiver knows reporting the same place. Nothing defines when two reports
     concern the same place and time, or which reporters count, and item 6's
     sybils make counts of strangers meaningless. Facts are keyed by author and
     kind, so each reporter holds one current report per kind and a second
     danger report replaces the first. There is also no fact kind for danger at
     a location: the planned status values are ok, need help, injured,
-    evacuating and has resources ([§9](#9-fact-payloads)). Candidate: a danger kind carrying
+    evacuating and has resources ([Section 9](#9-fact-payloads)). Candidate: a danger kind carrying
     location and time, counted only from reporters verified in person (🔑) or
     chained to a pinned root (✅).
 15. **Forwarded messages need signatures.** Reaching many people means
     messages get passed on: relayed across meshes, carried by hand, copied into
     SMS or another app. A `Tesla` frame that arrives after its key is disclosed
-    fails the security condition ([§6.2](#62-the-security-condition)), so a forwarded copy cannot be
+    fails the security condition ([Section 6.2](#62-the-security-condition)), so a forwarded copy cannot be
     checked. A `Signed` message can be checked by whoever receives it,
     whenever. For this scenario the unbuilt `Signed` send path is the main gap,
     and signature size decides whether a verified warning fits the messages
     people actually forward.
 16. **Reporting danger can endanger the reporter.** A signed report names its
-    sender ([§1.3](#13-non-goals)), which is what makes it credible and also what identifies
+    sender ([Section 1.3](#13-non-goals)), which is what makes it credible and also what identifies
     the person who sent it. In a shutdown that can put them at risk. A report
     verifiable as coming from some member of a group, without saying which
     member, needs group or ring signatures or anonymous credentials. Open
@@ -791,60 +793,60 @@ a codebase. Requirement text is compressed; the section is authoritative.
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R1** | Decoders MUST reject a short buffer | [§3](#3-frame-format) |
-| **R2** | Decoders MUST reject an unknown version | [§3](#3-frame-format), [§13](#13-versioning) |
-| **R3** | Decoders MUST reject an unknown class | [§3](#3-frame-format) |
-| **R4** | The version nibble MUST be checked before anything else | [§13](#13-versioning) |
-| **R5** | Decoders MUST reject trailing bytes after a complete cert | [§2.2](#22-operational-cert) |
-| **R6** | Decoding untrusted input MUST NOT panic or abort | [§11.1](#111-decode-errors) |
-| **R7** | Decoders MUST NOT allocate on an attacker-supplied length before checking it against the bytes held | [§11.1](#111-decode-errors) |
+| **R1** | Decoders MUST reject a short buffer | [Section 3](#3-frame-format) |
+| **R2** | Decoders MUST reject an unknown version | [Section 3](#3-frame-format), [Section 13](#13-versioning) |
+| **R3** | Decoders MUST reject an unknown class | [Section 3](#3-frame-format) |
+| **R4** | The version nibble MUST be checked before anything else | [Section 13](#13-versioning) |
+| **R5** | Decoders MUST reject trailing bytes after a complete cert | [Section 2.2](#22-operational-cert) |
+| **R6** | Decoding untrusted input MUST NOT panic or abort | [Section 11.1](#111-decode-errors) |
+| **R7** | Decoders MUST NOT allocate on an attacker-supplied length before checking it against the bytes held | [Section 11.1](#111-decode-errors) |
 
 ### Identity
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R8** | Verifiers MUST reject a signature suite they do not implement | [§2.5](#25-signature-suite-registry) |
-| **R9** | Receivers MUST NOT accept a frame from a sender whose cert has not been verified against an already-trusted root | [§10](#10-receiving-a-frame) |
+| **R8** | Verifiers MUST reject a signature suite they do not implement | [Section 2.5](#25-signature-suite-registry) |
+| **R9** | Receivers MUST NOT accept a frame from a sender whose cert has not been verified against an already-trusted root | [Section 10](#10-receiving-a-frame) |
 
 ### Message classes
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R10** | Senders MUST use `Signed` for directives that move people, for any message asserting authority, and for cert issuance and key material | [§4.1](#41-choosing-a-class) |
-| **R11** | Senders SHOULD use `Tesla` for all other traffic | [§4.1](#41-choosing-a-class) |
-| **R12** | Receivers MUST NOT display an authority badge on a `Tesla` frame | [§4.1](#41-choosing-a-class) |
+| **R10** | Senders MUST use `Signed` for directives that move people, for any message asserting authority, and for cert issuance and key material | [Section 4.1](#41-choosing-a-class) |
+| **R11** | Senders SHOULD use `Tesla` for all other traffic | [Section 4.1](#41-choosing-a-class) |
+| **R12** | Receivers MUST NOT display an authority badge on a `Tesla` frame | [Section 4.1](#41-choosing-a-class) |
 
 ### TESLA
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R13** | Chain values MUST be 32 bytes, not truncated | [§5.1](#51-chain-construction) |
-| **R14** | `K[0]` MUST NOT be disclosed; disclosure targets are ≥ 1 | [§5.1](#51-chain-construction) |
-| **R15** | The MAC key MUST NOT be the chain key; it is domain-separated from it | [§5.2](#52-mac-key-separation) |
-| **R16** | A disclosure that does not advance the interval MUST be rejected | [§5.4](#54-receiving) |
-| **R17** | A frame carrying an invalid disclosure MUST be discarded whole and MUST NOT be buffered | [§10](#10-receiving-a-frame) |
+| **R13** | Chain values MUST be 32 bytes, not truncated | [Section 5.1](#51-chain-construction) |
+| **R14** | `K[0]` MUST NOT be disclosed; disclosure targets are ≥ 1 | [Section 5.1](#51-chain-construction) |
+| **R15** | The MAC key MUST NOT be the chain key; it is domain-separated from it | [Section 5.2](#52-mac-key-separation) |
+| **R16** | A disclosure that does not advance the interval MUST be rejected | [Section 5.4](#54-receiving) |
+| **R17** | A frame carrying an invalid disclosure MUST be discarded whole and MUST NOT be buffered | [Section 10](#10-receiving-a-frame) |
 
 ### Time
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R18** | The security condition MUST be evaluated before any MAC is trusted | [§10](#10-receiving-a-frame) |
-| **R19** | When clock uncertainty cannot be bounded, the frame MUST be treated as unauthenticated | [§6.2](#62-the-security-condition) |
+| **R18** | The security condition MUST be evaluated before any MAC is trusted | [Section 10](#10-receiving-a-frame) |
+| **R19** | When clock uncertainty cannot be bounded, the frame MUST be treated as unauthenticated | [Section 6.2](#62-the-security-condition) |
 
 ### Fragmentation
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R20** | Receivers MUST reject a self-inconsistent fragment header | [§7.1](#71-fragment-header) |
-| **R21** | Receivers MUST reject a fragment contradicting one already seen for the same `object_id` | [§7.1](#71-fragment-header) |
-| **R22** | Receivers MUST bound the number of partially-received objects tracked | [§7.1](#71-fragment-header) |
+| **R20** | Receivers MUST reject a self-inconsistent fragment header | [Section 7.1](#71-fragment-header) |
+| **R21** | Receivers MUST reject a fragment contradicting one already seen for the same `object_id` | [Section 7.1](#71-fragment-header) |
+| **R22** | Receivers MUST bound the number of partially-received objects tracked | [Section 7.1](#71-fragment-header) |
 
 ### Processing and state
 
 | ID | Requirement | Section |
 |---|---|---|
-| **R23** | Receivers MUST process inbound frames in the order given | [§10](#10-receiving-a-frame) |
-| **R24** | Receivers MUST bound the per-peer frame buffer | [§10](#10-receiving-a-frame) |
-| **R25** | Sequence numbers MUST NOT be trusted before authentication | [§9.2](#92-merge-semantics) |
-| **R26** | Implementations MUST NOT conflate decode errors with rejections | [§11](#11-errors-and-rejections) |
-| **R27** | Implementations SHOULD count MAC failures and SHOULD NOT display them individually | [§11.3](#113-silent-drops) |
+| **R23** | Receivers MUST process inbound frames in the order given | [Section 10](#10-receiving-a-frame) |
+| **R24** | Receivers MUST bound the per-peer frame buffer | [Section 10](#10-receiving-a-frame) |
+| **R25** | Sequence numbers MUST NOT be trusted before authentication | [Section 9.2](#92-merge-semantics) |
+| **R26** | Implementations MUST NOT conflate decode errors with rejections | [Section 11](#11-errors-and-rejections) |
+| **R27** | Implementations SHOULD count MAC failures and SHOULD NOT display them individually | [Section 11.3](#113-silent-drops) |

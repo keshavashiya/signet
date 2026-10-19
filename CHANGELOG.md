@@ -12,13 +12,18 @@ Implementations should pin a commit.
 
 ### Changed
 
+- **SQIsign-I and MAYO-1 use their round-3 sizes.** SQIsign-I has an 83-byte
+  key and 200-byte signature (v3.0 specification), not the 2020 paper's 64 and
+  204; MAYO-1 is 1456 and 464, not 614 and 392. `signet sim`, README, PROTOCOL
+  Section 12.1 and the book follow: MAYO-1 now needs three frames (9x TESLA), and
+  SQIsign fits one frame at payloads up to 17 bytes.
 - **Every document separates what is built from what is planned.** The
   integration paths, UniFFI bindings, text footer, transport adapters and
   over-the-air cert requests are marked as not built; the dynamic disclosure
-  delay and the `Signed` fallback ([PROTOCOL.md §6.4](PROTOCOL.md#64-degradation-planned))
-  and the time sources (§6.3) as planned; the airtime figures as computed. Goal
-  2 of §1.2 now claims post-quantum authentication, not protection against
-  harvest-now-decrypt-later, since nothing is encrypted. §14 item 1 names the
+  delay and the `Signed` fallback ([PROTOCOL.md Section 6.4](PROTOCOL.md#64-degradation-planned))
+  and the time sources (Section 6.3) as planned; the airtime figures as computed. Goal
+  2 of Section 1.2 now claims post-quantum authentication, not protection against
+  harvest-now-decrypt-later, since nothing is encrypted. Section 14 item 1 names the
   sender as the victim of a forged beacon, matching item 8. The cert size in
   the `cert` and `frag` docs is 1617 bytes without a KEM key, not 2.6 KiB.
   Claims nobody can check (the oldest authentication technology, ham radio's
@@ -42,7 +47,7 @@ Implementations should pin a commit.
 - **The shutdown scenario is written up.** The roadmap compares a shutdown
   with a disaster: whom people trust, how danger is known, how messages travel
   and stay verifiable, who is at risk for sending, and which time sources
-  survive. PROTOCOL.md §14 gains four open questions: trust roots beyond
+  survive. PROTOCOL.md Section 14 gains four open questions: trust roots beyond
   emergency services, corroboration, forwarded messages needing signatures,
   and the reporter's safety.
 
@@ -67,7 +72,7 @@ Implementations should pin a commit.
   `intersect_takes_the_tighter_constraint` now pins that case. The beacon
   caveat named the wrong victim: a forged future floor only makes a receiver
   refuse early, but it makes a sender disclose early, which is the dangerous
-  direction. Both are open questions in PROTOCOL.md §14 now, with four more
+  direction. Both are open questions in PROTOCOL.md Section 14 now, with four more
   found in the same pass: chain lifetime against cert lifetime, the last
   message before a battery dies, stale disclosures under reordering, and the
   airtime model's missing per-fragment framing.
@@ -115,7 +120,7 @@ Implementations should pin a commit.
   pure-Rust `fn-dsa` crate. No C toolchain, so `cargo test` still runs with no
   system dependencies. Measured on an M-series laptop: keygen 4.9 ms, sign
   277 µs, verify 27 µs; 897-byte public key, 666-byte signature — matching the
-  figures [PROTOCOL.md §12.1](PROTOCOL.md#121-published-primitive-sizes) was written
+  figures [PROTOCOL.md Section 12.1](PROTOCOL.md#121-published-primitive-sizes) was written
   against.
 
   Certificate and message signatures use separate domain contexts, so a cert
@@ -221,7 +226,7 @@ Implementations should pin a commit.
   identity, the 13-byte frame header, the `Tesla`/`Signed`/`Fragment` message
   classes, TESLA chain operation, the time-synchronisation problem and its
   degradation path, erasure-coded fragmentation, and the fact payload schema.
-  Open questions are tracked in [§14](PROTOCOL.md#14-open-questions) rather than
+  Open questions are tracked in [Section 14](PROTOCOL.md#14-open-questions) rather than
   deferred silently.
 
 - **`signet-core` — TESLA hash chains (`chain`).** Chain generation from a

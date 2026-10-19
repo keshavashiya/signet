@@ -32,7 +32,7 @@
 //! - A multi-frame object is divided by the full MTU, although each fragment
 //!   frame also carries 13 + 7 bytes of Signet and fragment headers. That
 //!   undercounts frames for the largest signatures, which flatters them again;
-//!   see `PROTOCOL.md` §14.
+//!   see `PROTOCOL.md` Section 14.
 //! - Time-on-air uses the Semtech LoRa formula at Meshtastic's LongFast preset.
 //!   Per-frame preamble and header are why a 10-frame message costs far more
 //!   than 10x a 1-frame message's payload — counting bytes alone understates it.
@@ -72,13 +72,13 @@ const SCHEMES: &[Scheme] = &[
     },
     Scheme {
         name: "SQIsign-I",
-        trailer: 204,
+        trailer: 200,
         pq: true,
         note: "NIST round 3; slow to sign",
     },
     Scheme {
         name: "MAYO-1",
-        trailer: 392,
+        trailer: 464,
         pq: true,
         note: "NIST round 3",
     },

@@ -100,7 +100,7 @@ app: "Need help, 4 people"
   │
   ├─> Header::new(Class::Tesla, sender_fp, interval)         13 B
   ├─> flags | seq | kind                                      7 B
-  ├─> payload (CBOR per PROTOCOL.md §9; encoder not built)  ~30 B
+  ├─> payload (CBOR per PROTOCOL.md Section 9; encoder not built)  ~30 B
   ├─> tag = mac(chain.mac_key(i), everything above)          16 B
   ├─> once per interval: disclose chain.key(i - d)           32 B
   │
@@ -213,7 +213,7 @@ Two, and both are enforced in code rather than convention:
    unknown classes before any field is read.
 2. **Authentication.** `Store::merge` trusts sequence numbers. That trust is
    only earned after the verification in
-   [PROTOCOL.md §5.4](PROTOCOL.md#54-receiving). The module documents this because a
+   [PROTOCOL.md Section 5.4](PROTOCOL.md#54-receiving). The module documents this because a
    caller that merges unverified frames silently voids every ordering
    guarantee the store provides.
 
@@ -246,7 +246,7 @@ to understand the frame body, the abstraction has leaked.
 
 ### Adding a fact kind
 
-Pick an unused `u16`, document it in [PROTOCOL.md §9.1](PROTOCOL.md#91-fact-kinds), encode in CBOR.
+Pick an unused `u16`, document it in [PROTOCOL.md Section 9.1](PROTOCOL.md#91-fact-kinds), encode in CBOR.
 Old nodes relay it without understanding it, which is why `FactKind` is not an
 enum.
 
@@ -254,7 +254,7 @@ enum.
 
 Sizes go in `SCHEMES` in `crates/cli/src/sim.rs`, so the airtime cost is
 visible before the implementation exists. Add a variant to `cert::Alg` and the
-registry in [PROTOCOL.md §2.5](PROTOCOL.md#25-signature-suite-registry). Then wrap the
+registry in [PROTOCOL.md Section 2.5](PROTOCOL.md#25-signature-suite-registry). Then wrap the
 primitive in `crates/crypto`, never in `core`, which must stay `no_std` and
 hash-only.
 

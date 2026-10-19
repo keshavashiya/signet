@@ -24,13 +24,13 @@ talking.
 
 | Threat | Defence | Where |
 |---|---|---|
-| Forged authority ("fake evacuation order") | `Signed` class, cert chains to a root pinned before deployment | [PROTOCOL.md §4.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#41-choosing-a-class) |
+| Forged authority ("fake evacuation order") | `Signed` class, cert chains to a root pinned before deployment | [PROTOCOL.md Section 4.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#41-choosing-a-class) |
 | Message tampering | HMAC-SHA256 over header and payload | `chain::mac` |
 | Replay of an old disclosure | Non-advancing intervals rejected | `chain::verify_disclosure` |
-| State rollback ("mark them safe again") | Store rejects same-or-older sequence numbers | `store::merge` |
-| Forgery by a quantum adversary | SHA-256 chains for `Tesla`, FN-DSA for `Signed` and certs; the time sources are the exception (below) | [PROTOCOL.md §12.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#121-published-primitive-sizes) |
-| Harvest-now-decrypt-later | Nothing to decrypt: payloads are plaintext by design. Planned confidentiality is hybrid ML-KEM | [PROTOCOL.md §8](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#8-confidentiality-planned) |
-| Impersonation via node ID | Identity is a key, never a MAC address | [PROTOCOL.md §2](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#2-identity) |
+| State rollback ("mark them safe again") | Store rejects same-or-older sequence numbers | `Store::merge` |
+| Forgery by a quantum adversary | SHA-256 chains for `Tesla`, FN-DSA for `Signed` and certs; the time sources are the exception (below) | [PROTOCOL.md Section 12.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#121-published-primitive-sizes) |
+| Harvest-now-decrypt-later | Nothing to decrypt: payloads are plaintext by design. Planned confidentiality is hybrid ML-KEM | [PROTOCOL.md Section 8](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#8-confidentiality-planned) |
+| Impersonation via node ID | Identity is a key, never a MAC address | [PROTOCOL.md Section 2](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#2-identity) |
 | Disclosed key reused as MAC key | Domain-separated derivation | `chain::derive_mac_key` |
 | Malformed frames from the radio | Total decoding; every failure is a value | `wire::Header::decode` |
 
@@ -108,7 +108,7 @@ messages can move to another host, and no single app is a dependency.
 ### Anonymity: not offered, by design
 
 A signed message names its sender, and sender fingerprints are stable and
-linkable ([PROTOCOL.md §1.3](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#13-non-goals)).
+linkable ([PROTOCOL.md Section 1.3](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#13-non-goals)).
 That suits coordination with known responders. It is the wrong tool for anyone
 who must keep their identity hidden, including from authorities: Signet does
 not hide who is talking, and a host app's own encryption is separate from it.
@@ -127,7 +127,7 @@ reading any field. `signet-core` sets `#![forbid(unsafe_code)]`.
 
 `Store::merge` trusts sequence numbers for ordering. That trust is earned only
 after the verification in
-[PROTOCOL.md §5.4](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#54-receiving).
+[PROTOCOL.md Section 5.4](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#54-receiving).
 **A caller that merges unverified frames silently voids every ordering
 guarantee the store provides,** including replay and rollback protection. This
 is the most likely integration bug, and nothing reports it when it happens.

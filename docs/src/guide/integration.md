@@ -64,7 +64,7 @@ Need water at 12 Main St, 4 people
 - A vanilla client shows the text plus one footer line
 - A Signet client verifies, hides the footer, renders 🔑 **known sender**
 - Only routine `Tesla` traffic travels this way. An evacuation order must be
-  `Signed` ([PROTOCOL.md §4.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#41-choosing-a-class))
+  `Signed` ([PROTOCOL.md Section 4.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#41-choosing-a-class))
   and never rides in a footer
 - A footer keeps TESLA's timing ([Time](../protocol/time.md)): a Signet client
   has to see it before that interval's key goes public, 30–60 s at the default
@@ -90,7 +90,7 @@ Design choices:
   by transports that are careless with encoding.
 - **It says its own name.** Most people who see this footer will use a client
   that cannot read it, and they can search the word.
-- **Fields are labelled.** `from=` and `auth=` cost nine characters and are the
+- **Fields are labelled.** `from=` and `auth=` cost ten characters and are the
   difference between a structured footer and a blob.
 - **Everything after `auth=` to end-of-line is the trailer.** No length prefix,
   no escaping, nothing to get wrong in a hand-written parser.

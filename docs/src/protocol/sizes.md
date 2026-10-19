@@ -8,8 +8,8 @@ level 1 (roughly AES-128 equivalent) in bytes.
 | Scheme | Public key | Signature | Standard | Status |
 |---|---|---|---|---|
 | Ed25519 | 32 | 64 | RFC 8032 | Classical, **not post-quantum** |
-| SQIsign-I | 64 | 204 | NIST additional signatures | Round 3 (May 2026) |
-| MAYO-1 | 614 | 392 | NIST additional signatures | Round 3 |
+| SQIsign-I | 83 | 200 | NIST additional signatures | Round 3 (May 2026) |
+| MAYO-1 | 1456 | 464 | NIST additional signatures | Round 3 |
 | FN-DSA-512 | 897 | 666 | FIPS 206 | **Draft**; final expected late 2026 |
 | ML-DSA-44 | 1312 | 2420 | FIPS 204 | Final, Aug 2024 |
 | SLH-DSA-128s | 32 | 7856 | FIPS 205 | Final, Aug 2024 |
@@ -27,7 +27,7 @@ level 1 (roughly AES-128 equivalent) in bytes.
 |---|---|---|
 | SHA-256 output | 32 | Chain key width |
 | HMAC-SHA256, truncated | 16 | On-wire tag |
-| TESLA chain value | 32 | Full width; see [PROTOCOL.md §5.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#51-chain-construction) on why not 16 |
+| TESLA chain value | 32 | Full width; see [PROTOCOL.md Section 5.1](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#51-chain-construction) on why not 16 |
 | AES-256 key | 32 | Quantum-resistant; Grover halves the margin |
 
 ## How these map to frames
@@ -39,19 +39,19 @@ a 7-byte body header, and a 30-byte status beacon:
 |---|---|---|---|
 | 16 (TESLA, typical) | 66 | 1 | Fits with room to spare |
 | 48 (TESLA, with disclosure) | 98 | 1 | First frame of each interval |
-| 204 (SQIsign) | 254 | 2 | Just over; a 13-byte payload would fit in one |
-| 392 (MAYO-1) | 442 | 2 | |
+| 200 (SQIsign) | 250 | 2 | Just over; a 17-byte payload would fit in one |
+| 464 (MAYO-1) | 514 | 3 | |
 | 666 (FN-DSA) | 716 | 4 | |
 | 2420 (ML-DSA) | 2470 | 11 | |
 | 7856 (SLH-DSA) | 7906 | 34 | Root certs only, never on the hot path |
 
-The SQIsign row matters most: **a 204-byte signature misses a single frame by
-17 bytes**, and with a 13-byte payload it fits. If SQIsign were standardised,
+The SQIsign row matters most: **a 200-byte signature misses a single frame by
+13 bytes**, and with a 17-byte payload it fits. If SQIsign were standardised,
 per-message post-quantum signatures would become viable here and this design
 would change substantially.
 
-Verify with `signet sim --payload 12`: SQIsign drops to one frame and its
-effective airtime to 2.5x TESLA's (2409 against 975 ms), from 6x at a 30-byte
+Verify with `signet sim --payload 17`: SQIsign drops to one frame and its
+effective airtime to 2.4x TESLA's (2460 against 1027 ms), from 6x at a 30-byte
 payload.
 
 ## Why the simulator hardcodes these
@@ -87,5 +87,6 @@ measurement is Radio work, on real hardware.
 - [FIPS 206: FN-DSA (draft status)](https://www.digicert.com/blog/quantum-ready-fndsa-nears-draft-approval)
 - [NIST IR 8610: round 2 status report and round 3 selections](https://csrc.nist.gov/pubs/ir/8610/final)
 - [NIST: nine candidates advance to round 3, and HAWK's withdrawal](https://www.nist.gov/news-events/news/2026/05/nine-candidates-advance-third-round-additional-digital-signatures-pqc)
-- [SQIsign](https://eprint.iacr.org/2020/1240)
+- [SQIsign round-3 specification, v3.0](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/sqisign_specification.pdf)
+- [MAYO round-3 specification](https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf)
 - [Cloudflare: why we cannot wait for better post-quantum signatures](https://blog.cloudflare.com/ml-dsa-will-have-to-do/)

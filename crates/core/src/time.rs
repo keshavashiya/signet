@@ -100,7 +100,7 @@ impl Schedule {
     ///
     /// Provisional. Nobody has measured what interval length is right for a
     /// real mesh — too short wastes airtime on disclosures, too long delays
-    /// verification past usefulness. See PROTOCOL.md §12.
+    /// verification past usefulness. See PROTOCOL.md Section 12.
     pub fn default_at(epoch_ms: u64) -> Self {
         Self {
             epoch_ms,

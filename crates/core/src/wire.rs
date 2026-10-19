@@ -14,7 +14,7 @@
 //!
 //! The sender field is an 8-byte truncation of the operational cert hash, not
 //! the cert itself. Certs are fetched once and cached forever, which is what
-//! keeps a 1.6 KiB credential off a 200-byte link. See `PROTOCOL.md` §2.
+//! keeps a 1.6 KiB credential off a 200-byte link. See `PROTOCOL.md` Section 2.
 
 use crate::{Error, Result};
 

@@ -30,7 +30,7 @@ Attacks on the *design* rather than an implementation bug. `PROTOCOL.md` is
 published so it can be reviewed before anyone uses it in the field, so open a
 normal issue. Known gaps are listed in
 [`docs/src/protocol/threat-model.md`](docs/src/protocol/threat-model.md) and
-[PROTOCOL.md §14](PROTOCOL.md#14-open-questions).
+[PROTOCOL.md Section 14](PROTOCOL.md#14-open-questions).
 
 ## Supported versions
 

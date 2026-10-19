@@ -52,7 +52,7 @@ reliable back-channel to negotiate them on.
 
 ## The frame
 
-Thirteen bytes, fixed, no options.
+A 13-byte header and a 7-byte body header, both fixed, with no options.
 
 ```text
 byte 0      version (4 bits) | class (4 bits)

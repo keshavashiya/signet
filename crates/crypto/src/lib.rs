@@ -149,7 +149,7 @@ impl KeyPair {
     /// Issue an operational certificate for `holder`.
     ///
     /// `self` is the root; keep it cold. `valid_until` is a beacon round
-    /// number, not wall-clock time — see PROTOCOL.md §2.3 on why expiry substitutes
+    /// number, not wall-clock time — see PROTOCOL.md Section 2.3 on why expiry substitutes
     /// for revocation.
     pub fn issue(
         &self,
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn published_sizes_match_the_spec() {
-        // PROTOCOL.md §12.1 and docs/src/protocol/sizes.md quote these. If the upstream
+        // PROTOCOL.md Section 12.1 and docs/src/protocol/sizes.md quote these. If the upstream
         // draft moves, this test is where it surfaces.
         assert_eq!(VRFY_KEY_LEN, 897);
         assert_eq!(SIG_LEN, 666);

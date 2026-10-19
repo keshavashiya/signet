@@ -49,7 +49,7 @@ const FIXED_LEN: usize = 48;
 ///
 /// Explicit and one byte wide because the choice is not settled: FIPS 206 is
 /// still draft and eight NIST round-3 candidates are in play, one of which has
-/// a 204-byte signature that would change this protocol's economics. Algorithm
+/// a 200-byte signature that would change this protocol's economics. Algorithm
 /// agility here costs one byte and saves a wire-format break later.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]

@@ -41,7 +41,7 @@
 //! TESLA is authenticated broadcast, **not** non-repudiation. Once `K[i]` is
 //! public, anyone can forge interval `i` retroactively. It is correct for
 //! routine traffic and wrong for authoritative traffic (evacuation orders,
-//! credentials), which take a real signature. See `PROTOCOL.md` §4.
+//! credentials), which take a real signature. See `PROTOCOL.md` Section 4.
 //!
 //! # Security condition
 //!
@@ -70,7 +70,7 @@ pub const KEY_LEN: usize = 32;
 /// of about 2^128 steps, worth anything only before the key is disclosed.
 /// Chain values get no such discount: a preimage of the last disclosed key
 /// stays useful for as long as a receiver hears nothing newer, so they keep
-/// all 32 bytes (`PROTOCOL.md` §5.1).
+/// all 32 bytes (`PROTOCOL.md` Section 5.1).
 pub const MAC_LEN: usize = 16;
 
 /// A single link in a hash chain.
