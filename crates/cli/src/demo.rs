@@ -1,10 +1,10 @@
-//! `signet demo` — two nodes, real keys, a lossy channel.
+//! `signet demo`: two nodes, real keys, a lossy channel.
 //!
 //! The Protocol deliverable made visible. Everything here is the real protocol:
 //! FN-DSA cert issuance, out-of-band pinning, TESLA chains, the security
 //! condition, and the fact store. Only the radio is simulated.
 //!
-//! Loss is a deterministic LCG so a run reproduces exactly from its seed —
+//! Loss is a deterministic LCG so a run reproduces exactly from its seed,
 //! which matters more than statistical realism when you are trying to explain
 //! why a particular frame was dropped.
 

@@ -10,14 +10,13 @@
 //!
 //! Keys are `(author, kind)`. Nobody else can write your keys, so two writes
 //! to the same key always come from the same author and are totally ordered by
-//! that author's sequence number. Conflicts are structurally impossible. The
-//! merge function is `seq > existing.seq`.
+//! that author's sequence number, so conflicts cannot occur. The merge
+//! function is `seq > existing.seq`.
 //!
-//! This is also the *right* model for the domain, not just the cheap one.
-//! "Bridge out at 5th St" is not global truth — it is Alice's claim. The UI
-//! renders "3 people report bridge out", which is exactly the misinformation
-//! resistance an emergency network needs. A CRDT that let three authors
-//! collapse into one authoritative value would be actively worse.
+//! It also fits the domain. "Bridge out at 5th St" is not global truth but
+//! Alice's claim, and the UI renders "3 people report bridge out". Showing
+//! agreement between reporters is how the store resists misinformation; a CRDT
+//! that merged three authors into one value would hide it.
 //!
 //! # Deliberate limits
 //!

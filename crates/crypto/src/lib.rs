@@ -1,19 +1,19 @@
 //! Post-quantum signatures and certificate operations.
 //!
 //! Everything in Signet that needs a primitive larger than a hash function
-//! lives here, so that [`signet_core`] can stay `no_std` and dependency-light.
-//! The split is the reason the cheap authentication path runs on hardware the
-//! expensive one never could.
+//! lives here, so that [`signet_core`] can stay `no_std` and dependency-light,
+//! and the cheap authentication path can run on hardware where a signature
+//! would not fit.
 //!
 //! # Why FN-DSA-512
 //!
-//! The airtime model measured it: on a 237-byte link at 20% loss, a 666-byte FN-DSA signature
-//! costs 12x the effective airtime of a TESLA trailer, while ML-DSA-44's
-//! 2420-byte signature costs 31x. FN-DSA is the smallest signature on NIST's
-//! finalised track, which makes it the right primitive for the rare messages
-//! that genuinely need non-repudiation.
+//! The airtime model computes it: on a 237-byte link at 20% loss, a 666-byte
+//! FN-DSA signature costs 12x the effective airtime of a TESLA trailer, while
+//! ML-DSA-44's 2420-byte signature costs 31x. FN-DSA is the smallest signature
+//! NIST has selected for standardisation, which makes it the right primitive
+//! for the rare messages that genuinely need non-repudiation.
 //!
-//! The implementation is [`fn_dsa`] — pure Rust, `no_std`, by the author of the
+//! The implementation is [`fn_dsa`]: pure Rust, `no_std`, by the author of the
 //! Falcon reference code. No C toolchain, so `cargo test` keeps working with no
 //! system dependencies.
 //!
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn published_sizes_match_the_spec() {
-        // PROTOCOL.md §10.1 and docs/src/protocol/sizes.md quote these. If the upstream
+        // PROTOCOL.md §12.1 and docs/src/protocol/sizes.md quote these. If the upstream
         // draft moves, this test is where it surfaces.
         assert_eq!(VRFY_KEY_LEN, 897);
         assert_eq!(SIG_LEN, 666);

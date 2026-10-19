@@ -1,13 +1,13 @@
-//! Signet core — the parts of the protocol that are pure logic.
+//! Signet core: the parts of the protocol that are pure logic.
 //!
-//! This crate deliberately contains **no cryptographic primitives beyond a
-//! hash function**. That is not an oversight; it is the thesis. Signet's cheap
-//! authentication path (see [`chain`]) is built entirely from SHA-256, which
-//! makes it post-quantum by construction and lets it run on a microcontroller
-//! that could never afford a lattice signature per message.
+//! This crate deliberately contains **no cryptographic primitive beyond a hash
+//! function**. Signet's cheap authentication path (see [`chain`]) is built
+//! entirely from SHA-256, which makes it post-quantum by construction and lets
+//! it run on a microcontroller that could not afford a lattice signature per
+//! message.
 //!
 //! Post-quantum signatures and KEMs (the expensive path) live outside this
-//! crate and are selected by measurement — see `docs/roadmap`. Nothing here
+//! crate, chosen with the airtime model (see `docs/src/roadmap`). Nothing here
 //! depends on that choice.
 //!
 //! # Layout
@@ -23,8 +23,7 @@
 //! # no_std
 //!
 //! Everything here works under `no_std` + `alloc`. Do not add a `std`-only
-//! dependency to this crate; the ESP32 target is a hard requirement, not an
-//! aspiration.
+//! dependency to this crate; the ESP32 target requires it.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

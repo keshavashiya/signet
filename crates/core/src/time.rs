@@ -13,13 +13,13 @@
 //! # What is here and what is not
 //!
 //! This module implements the *check* and the interval arithmetic it needs. It
-//! does **not** implement the sources that produce a good time bound — GNSS,
-//! peer exchange, beacon floors. That is Clock work. The bound arrives as an
-//! input, and a caller supplying a dishonest one gets what it asked for.
+//! does **not** implement the sources that produce a good time bound (GNSS,
+//! peer exchange, beacon floors); that is Clock work. The bound arrives as an
+//! input, and a caller that supplies one tighter than it can justify disables
+//! the check without any error.
 //!
-//! Splitting it this way is deliberate: the check is small, testable, and
-//! finished, while the sources are an open research problem. Coupling them
-//! would mean neither could be finished.
+//! The split is deliberate: the check is small, testable and finished, while
+//! the sources are an open research problem.
 //!
 //! See `docs/src/protocol/time.md`.
 
@@ -63,10 +63,14 @@ impl TimeBound {
 
     /// Intersect two bounds, keeping the tighter constraint from each side.
     ///
-    /// This is how a peer with a GNSS fix tightens a peer without one.
-    /// Intersection, not averaging: a lying peer can only widen the result or
-    /// be ignored, never drag it. Returns `None` if the bounds are disjoint,
-    /// which means at least one source is wrong and neither should be trusted.
+    /// This is how a peer with a GNSS fix tightens a peer without one, and it
+    /// is safe only when both bounds are honest. The result never leaves
+    /// `self`, but a lying peer whose bound overlaps it picks where inside
+    /// `self` it lands, true time excluded if it likes. One such liar can make
+    /// [`security_condition`] admit a frame that `self` alone refuses.
+    /// Tolerating liars takes Marzullo's algorithm over several sources, not a
+    /// pairwise intersection. Returns `None` if the bounds are disjoint, which
+    /// means at least one source is wrong and neither should be trusted.
     pub fn intersect(&self, other: &Self) -> Option<Self> {
         let earliest = self.earliest_ms.max(other.earliest_ms);
         let latest = self.latest_ms.min(other.latest_ms);
@@ -226,6 +230,19 @@ mod tests {
             }
         );
         assert!(both.width_ms() < wide.width_ms());
+
+        // Which is also the hazard: a liar's tighter constraint wins too. The
+        // honest bound covers the true time, 10 s after K[5] went public, so it
+        // refuses. A peer claiming a tight bound that ends just before
+        // disclosure flips the verdict.
+        let s = sched();
+        let honest = TimeBound::new(s.disclosure_ms(5) + 10_000, 60_000);
+        let liar = TimeBound {
+            earliest_ms: honest.earliest_ms,
+            latest_ms: s.disclosure_ms(5) - 1,
+        };
+        assert!(!security_condition(&s, 5, &honest));
+        assert!(security_condition(&s, 5, &honest.intersect(&liar).unwrap()));
     }
 
     #[test]

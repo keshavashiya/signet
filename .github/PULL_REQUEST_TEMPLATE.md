@@ -35,5 +35,5 @@
 ## Security impact
 
 <!-- Required if this touches crates/core, PROTOCOL.md, or anything that parses
-     radio input. State "none" explicitly if there is none — do not delete
+     radio input. State "none" explicitly if there is none; do not delete
      this section. -->

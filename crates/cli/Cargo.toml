@@ -1,6 +1,6 @@
 [package]
 name = "signet"
-description = "Signet CLI — protocol tools and the constrained-link airtime simulator"
+description = "Signet CLI: protocol tools and the constrained-link airtime simulator"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

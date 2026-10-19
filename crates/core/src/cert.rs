@@ -2,8 +2,8 @@
 //!
 //! # Two tiers, because one cannot be both
 //!
-//! Root keys must be cold — paper-backed, offline, used a handful of times
-//! ever. Operational keys must be hot — on a device that may be seized, lost,
+//! Root keys must be cold: paper-backed, offline, used a handful of times
+//! ever. Operational keys must be hot: on a device that may be seized, lost,
 //! or dropped in a river. A single tier cannot satisfy both, so a root signs
 //! short-lived operational certs and stays in a drawer.
 //!
@@ -19,17 +19,19 @@
 //!
 //! # Certs never touch the hot path
 //!
-//! A cert is roughly 2.6 KiB. Frames carry an 8-byte [`Cert::fingerprint`]
-//! instead; a receiver missing the cert requests it once and caches it
-//! forever. Distribution is out-of-band where possible — QR, NFC, a
-//! pre-deployment roster file — which costs no airtime at all.
+//! A cert is 1617 bytes with an FN-DSA-512 key and no KEM key, and about
+//! 2.7 KiB with an ML-KEM-768 key. Frames carry an 8-byte
+//! [`Cert::fingerprint`] instead; a receiver gets the cert once and caches it.
+//! Distribution is out of band where possible (QR, NFC, a roster file handed
+//! out in advance), which costs no airtime. An over-the-air cert request is
+//! not specified yet.
 //!
 //! # Revocation
 //!
 //! There is none. Offline revocation needs a status list, which needs the
-//! network that is missing. Signet substitutes 30-day expiry, the same dodge
-//! short-lived TLS certificates use. A compromised operational key stays valid
-//! until it expires; this is a real weakness, stated rather than hidden.
+//! network that is missing. Signet uses 30-day expiry instead, as short-lived
+//! TLS certificates do. A compromised operational key stays valid until it
+//! expires, which is a real weakness.
 
 use alloc::vec::Vec;
 use sha2::{Digest, Sha256};
@@ -46,7 +48,7 @@ const FIXED_LEN: usize = 48;
 /// Signature suite identifier.
 ///
 /// Explicit and one byte wide because the choice is not settled: FIPS 206 is
-/// still draft and nine NIST round-3 candidates are in play, one of which has
+/// still draft and eight NIST round-3 candidates are in play, one of which has
 /// a 204-byte signature that would change this protocol's economics. Algorithm
 /// agility here costs one byte and saves a wire-format break later.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

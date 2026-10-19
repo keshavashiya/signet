@@ -12,8 +12,8 @@ cd signet
 cargo test --workspace
 ```
 
-No network, no hardware, no C toolchain. Keep it that way — a contributor who
-cannot run the suite will not contribute.
+Building and testing need no network, hardware or C toolchain. Keep it that
+way, so anyone can run the suite.
 
 ## Before pushing
 
@@ -32,27 +32,27 @@ cargo test --workspace
 
 ## Hard rules
 
-Non-negotiable. A PR that breaks one is rejected without discussion. Full
-reasoning in
+A PR that breaks one is rejected. The reasons are in
 [CONTRIBUTING.md](https://github.com/keshavashiya/signet/blob/main/CONTRIBUTING.md#hard-rules).
 
-1. `signet-core` stays `no_std` — it has to run on an ESP32.
-2. `signet-core` stays hash-only — no post-quantum primitive in `core`.
+1. `signet-core` stays `no_std`, so it can run on an ESP32.
+2. `signet-core` uses only hash functions; post-quantum primitives live in
+   `signet-crypto`.
 3. Never implement a cryptographic primitive.
-4. No C toolchain — `cargo test` works with zero system dependencies.
+4. No C toolchain: `cargo test` needs no system dependencies.
 5. Parsers never panic on untrusted input.
 6. Every rejection path gets a test.
 7. Wire changes update `PROTOCOL.md` in the same PR.
 8. New crates need a boundary that already hurts.
-9. Phases are named for what they deliver — `Airtime`, `Protocol`, `Radio`,
-   `App`, `Clock`, `Bluetooth`.
+9. Phases are named for what they deliver: `Airtime`, `Protocol`, `Warnings`,
+   `Radio`, `Clock`, `Integration`.
 10. The refused list: no blockchain, no revocation PKI, no CRDT library, no new
     mesh routing, no servers or accounts, no voice or video.
 
 ## Testing standard
 
-Cryptographic and merge logic needs the **adversarial** cases, not the happy
-path. The existing suite is the bar:
+Cryptographic and merge logic needs tests for the **adversarial** cases, not
+just the happy path. The existing suite sets the standard:
 
 | Module | Cases covered |
 |---|---|
@@ -65,24 +65,24 @@ path. The existing suite is the bar:
 | `session.rs` | Header rewriting, flag stripping, forged disclosure, impersonation |
 | `tests/e2e.rs` | Unpinned roots, stolen fingerprints, replay after disclosure, over-confident clocks |
 
-Property tests (`proptest`) and fuzz targets (`bolero`) are welcome on the
-parsers and are the natural next addition.
+There are no property tests or fuzz targets yet. Both (`proptest`, `bolero`)
+are welcome on the parsers.
 
 ## Dependencies
 
-Signet is a security library, so every transitive dependency is attack surface
-for the thing it exists to protect. `core` has three (`sha2`, `hmac`,
-`reed-solomon-erasure`) and should gain approximately none. A PR adding one
-should say in a line why it beats writing the code.
+Signet is a security library, so every transitive dependency is attack
+surface. `core` has three (`sha2`, `hmac`, `reed-solomon-erasure`) and should
+stay close to that. A PR adding one should say in a line why it beats writing
+the code.
 
 **No C toolchain.** `cargo test` must keep working with no system
 dependencies; that is why the FN-DSA implementation is pure Rust.
 
 ## Security
 
-Do not open a public issue for a vulnerability — report it privately through
+Do not open a public issue for a vulnerability. Report it privately through
 GitHub's [Security tab](https://github.com/keshavashiya/signet/security/advisories/new).
 
-Design critique of the [protocol](../protocol/README.md) is genuinely welcome and
-belongs in public. The specification is written down in detail precisely so it
-can be attacked on paper before anyone trusts it in the field.
+Critique of the [protocol](../protocol/README.md) design is welcome as a public
+issue. The specification is written down in full so it can be reviewed before
+anyone uses it in the field.

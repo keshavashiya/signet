@@ -1,4 +1,4 @@
-# Signet Wire Protocol — v1 (draft)
+# Signet wire protocol, v1 (draft)
 
 **Status:** draft. Wire format is unstable until v1.0.0 and may change without
 a compatibility path. Implementations should pin a commit.
@@ -15,7 +15,7 @@ a compatibility path. Implementations should pin a commit.
 - [5. TESLA operation](#5-tesla-operation)
 - [6. Time](#6-time)
 - [7. Fragmentation](#7-fragmentation)
-- [8. Confidentiality](#8-confidentiality-planned) — planned
+- [8. Confidentiality](#8-confidentiality-planned) (planned)
 - [9. Fact payloads](#9-fact-payloads)
 - [10. Receiving a frame](#10-receiving-a-frame)
 - [11. Errors and rejections](#11-errors-and-rejections)
@@ -69,8 +69,8 @@ ranges are half-open: `[1..9]` means bytes 1 through 8 inclusive.
 
 Signet specifies **authenticity for messages carried over a constrained,
 lossy, infrastructure-free broadcast link**. It assumes a host transport that
-already moves opaque payloads between nodes — Meshtastic, BLE mesh, Reticulum,
-raw LoRa — and adds nothing to routing, discovery, or delivery.
+already moves opaque payloads between nodes (Meshtastic, BLE mesh, Reticulum,
+raw LoRa) and adds nothing to routing, discovery or delivery.
 
 ### 1.1 Design constraints
 
@@ -87,11 +87,13 @@ These are inherited from the medium, not chosen:
 ### 1.2 Goals
 
 1. Every message is attributable to a verifiable sender.
-2. Post-quantum security throughout, including against harvest-now-decrypt-later.
+2. Post-quantum authentication throughout. Payloads are plaintext; when
+   confidentiality is added it must be post-quantum too ([§8](#8-confidentiality-planned)).
 3. Routine traffic costs a small constant number of bytes, independent of the
    signature scheme in use.
 4. Verification works with no network access whatsoever.
-5. Degrade to a weaker-but-honest state rather than failing closed or lying.
+5. When a check cannot be made, fall back to a weaker state that says so
+   rather than failing closed or claiming more than it knows.
 
 ### 1.3 Non-goals
 
@@ -132,20 +134,21 @@ operational cert expires.
 | … | `kem_pubkey` | 2 + n B | Length-prefixed. 0 = absent; 1184 B at ML-KEM-768 |
 | … | `sig` | 2 + n B | Length-prefixed. 666 B at FN-DSA-512 |
 
-The signed region — the *to-be-signed* bytes — is every field from `version`
+The signed region (the *to-be-signed* bytes) is every field from `version`
 through `kem_pubkey`. `sig` covers those bytes and is not itself signed. A cert
 with an FN-DSA-512 key and no KEM key is **1617 bytes**.
 
 The three cryptographic fields are length-prefixed rather than fixed-width
 because the signature suite is not settled: FIPS 206 is draft, and a NIST
 round-3 candidate with a 204-byte signature would change these sizes entirely.
-Six bytes of framing on an object that travels out of band is the cheapest
-possible insurance against a wire-format break.
+Six bytes of framing on an object that travels out of band is cheap
+protection against a wire-format break.
 
-Certs are **never sent on the hot path.** Frames carry an 8-byte fingerprint —
-SHA-256 over the full encoding, truncated — and a receiver that does not hold
-the cert requests it once and caches it forever. Out-of-band distribution (QR,
-NFC, pre-disaster roster file) is preferred and costs zero airtime.
+Certs are **never sent on the hot path.** Frames carry an 8-byte fingerprint
+(SHA-256 over the full encoding, truncated). A receiver that does not hold the
+cert has to obtain it once and can then cache it; an over-the-air cert request
+is not specified yet. Out-of-band distribution (QR, NFC, a roster file handed
+out in advance) is preferred and costs no airtime.
 
 Decoders MUST reject trailing bytes. Junk after a cert would otherwise let an
 attacker vary its fingerprint without touching what the signature covers.
@@ -154,11 +157,10 @@ attacker vary its fingerprint without touching what the signature covers.
 
 There is none. Offline revocation is an unsolved problem: status lists require
 a network to fetch, which is precisely what is missing. Signet substitutes
-**short expiry** — the same dodge short-lived TLS certificates use.
+**short expiry**, as short-lived TLS certificates do.
 
-A compromised operational key is valid until its `valid_until`. This is a real
-weakness, stated plainly rather than papered over with infrastructure that
-cannot work offline.
+A compromised operational key stays valid until its `valid_until`. This is a
+real weakness.
 
 ### 2.4 Trust establishment
 
@@ -170,8 +172,10 @@ Trust-on-first-use, upgraded out-of-band:
 | Known | QR/NFC scanned in person | 🔑 |
 | Responder / EOC | Cert chains to a root pinned before deployment | ✅ |
 
-Organisational roots are distributed during onboarding, when the network still
-works. An EOC can do this; it is an org problem with an org solution.
+Organisational roots are distributed during onboarding, while the network
+still works, which an emergency operations centre can organise. Pinning is
+implemented; the QR and NFC exchange and the badges belong to the host app and
+are not built ([Integration](docs/src/roadmap/README.md)).
 
 ### 2.5 Signature suite registry
 
@@ -187,8 +191,8 @@ signature with a different one.
 
 ## 3. Frame format
 
-Fixed 13-byte header. No options, no TLVs — every header byte is a payload byte
-lost on a 237-byte link.
+Fixed 13-byte header, with no options or TLVs, because every header byte is a
+payload byte lost on a 237-byte link.
 
 ```text
  0                   1                   2                   3
@@ -208,10 +212,10 @@ lost on a 237-byte link.
 
 | Offset | Size | Field |
 |---|---|---|
-| 0 | 4 bits | `version` — 1 |
-| 0 | 4 bits | `class` — see [§4](#4-message-classes) |
-| 1 | 8 B | `sender` — truncated operational cert hash |
-| 9 | 4 B | `interval` — TESLA interval index, big-endian |
+| 0 | 4 bits | `version`, value 1 |
+| 0 | 4 bits | `class`, see [§4](#4-message-classes) |
+| 1 | 8 B | `sender`, the truncated operational cert hash |
+| 9 | 4 B | `interval`, the TESLA interval index, big-endian |
 | 13 | … | body, then trailer (class-specific, [§4](#4-message-classes)) |
 
 Decoders MUST reject a short buffer, an unknown version, and an unknown class.
@@ -274,6 +278,10 @@ authority badge on a `Tesla` frame.
 
 ## 5. TESLA operation
 
+TESLA is the broadcast authentication scheme of Perrig, Canetti, Tygar and
+Song (IEEE S&P 2000), specified in [RFC 4082](https://www.rfc-editor.org/rfc/rfc4082).
+This section is Signet's profile of it.
+
 ### 5.1 Chain construction
 
 Generate down from a secret seed; use walks up:
@@ -291,10 +299,13 @@ Chain values **MUST** be 32 bytes, not truncated. Forging interval `i+1` from a
 disclosed `K[i]` is a preimage attack, so preimage resistance is what protects
 every future interval; a 128-bit chain value would give 64-bit resistance under
 Grover, which is not defensible for a protocol whose premise is post-quantum.
+The 16-byte MAC is a different case: guessing a tag needs a receiver to check
+each guess, so Grover does not apply, while a chain preimage can be searched
+offline for as long as a receiver hears nothing newer.
 The per-message cost stays at 16 bytes because disclosure amortises ([§5.3](#53-sending)).
 
 `K[0]` is the commitment. It is published in the cert, already public, and MUST
-NOT be disclosed — a receiver anchored there would correctly reject it as
+NOT be disclosed: a receiver anchored there would correctly reject it as
 non-advancing and drop an otherwise valid frame. Disclosure targets are ≥ 1.
 
 ### 5.2 MAC key separation
@@ -306,7 +317,7 @@ mac_key[i] = SHA-256("signet/v1/mackey" || K[i])
 ```
 
 Without this domain separation, disclosing `K[i]` would disclose the key that
-authenticated interval `i`, and the scheme collapses entirely.
+authenticated interval `i`, and the scheme would authenticate nothing.
 
 ### 5.3 Sending
 
@@ -322,12 +333,12 @@ During interval `i`, for each message:
 Disclosure is per-interval, not per-message. A sender emitting five frames in
 one interval would otherwise repeat the same 32 bytes five times; instead the
 remaining four carry the 16-byte MAC alone. Receivers do not care which frames
-carry it — a missed disclosure is recovered from any later one ([§5.5](#55-loss-tolerance)).
+carry it, because a missed disclosure is recovered from any later one ([§5.5](#55-loss-tolerance)).
 
 ### 5.4 Receiving
 
 1. **Check the security condition ([§6.2](#62-the-security-condition)). If it fails, discard.** Skipping this
-   step makes the MAC meaningless — an attacker simply waits for disclosure.
+   step makes the MAC meaningless: an attacker waits for disclosure, then forges.
 2. Buffer the message; it cannot be verified yet.
 3. On receiving `K[j]`: verify `H^(j - anchor_interval)(K[j]) == anchor`. This
    simultaneously authenticates `K[j]` and recovers every skipped key.
@@ -337,7 +348,7 @@ carry it — a missed disclosure is recovered from any later one ([§5.5](#55-lo
 
 ### 5.5 Loss tolerance
 
-Gap recovery is free: a receiver anchored at interval 3 that misses 4, 5 and 6
+Gap recovery costs no airtime: a receiver anchored at interval 3 that misses 4, 5 and 6
 recovers all of them from `K[7]`. This is why TESLA suits a lossy broadcast
 medium where a signature scheme needs retransmits.
 
@@ -353,8 +364,8 @@ TESLA's security rests entirely on a receiver knowing that a message arrived
 *before* its key could have been public. Off-grid there is no NTP, phone RTCs
 drift, and GNSS is unavailable indoors and spoofable outdoors.
 
-**This is the hardest unsolved part of the protocol and the project's main
-research contribution.**
+This is the hardest unsolved part of the protocol, and the research question
+of the Clock phase.
 
 ### 6.2 The security condition
 
@@ -371,33 +382,40 @@ frame MUST be treated as unauthenticated.
 
 ### 6.3 Bounding uncertainty
 
-A local monotonic clock, tightened opportunistically:
+A local monotonic clock, tightened opportunistically. Only the interval
+arithmetic and the check are implemented
+([`time.rs`](crates/core/src/time.rs)); acquiring bounds from the sources below
+is Clock work **[PLANNED]**.
 
 | Source | Bound | Availability |
 |---|---|---|
 | GNSS fix | ±µs | Outdoors, unjammed |
-| Peer exchange | Interval arithmetic, tightest wins | On any contact |
+| Peer exchange | Intersection, safe only among honest peers | On any contact |
 | Public beacon (drand, CURBy) | Monotonic floor: "time ≥ T" | Anyone who touched the internet |
 | Local monotonic | Widens over time | Always |
 
-Nodes with tight bounds propagate tightness through the mesh on contact. A
-beacon value proves time has *passed*, never that it has not — it is a floor,
-combined with local monotonic time, never a sole authority.
+Nodes with tight bounds propagate tightness through the mesh on contact, and a
+liar's bound propagates the same way, so intersection is only as safe as every
+peer in it ([§14](#14-open-questions)). A beacon value proves time has *passed*,
+never that it has not. It is a floor, combined with local monotonic time,
+never a sole authority.
 
-### 6.4 Degradation
+### 6.4 Degradation [PLANNED]
 
 The disclosure delay `d` widens to cover current uncertainty. When uncertainty
 exceeds the threshold at which `d` would become impractical, the sender falls
 back to `Signed` for that message.
 
-**The system degrades instead of failing.** Measuring what fraction of
+Not implemented: `d` is a fixed schedule parameter today (2 intervals by
+default), and the fallback needs the `Signed` send path. A receiver that cannot
+bound its clock refuses the frame as `TooLate`. Measuring what fraction of
 real-world messages get the cheap path is the Clock deliverable.
 
 ---
 
 ## 7. Fragmentation
 
-Objects exceeding one frame — certs, KEM keys, `Signed` trailers — are
+Objects exceeding one frame (certs, KEM keys, `Signed` trailers) are
 **erasure coded, not retransmitted**. On a broadcast medium with no reliable
 back-channel, sending redundancy beats negotiating repairs.
 
@@ -407,8 +425,8 @@ back-channel, sending redundancy beats negotiating repairs.
   overhead they cannot repay
 - At least one parity shard is always produced
 
-Published ML-KEM-over-LoRa handshakes needing 28–62 frames use retransmission.
-That is the difference this makes.
+Published ML-KEM-over-LoRa handshakes that need 28–62 frames use
+retransmission instead.
 
 ### 7.1 Fragment header
 
@@ -432,8 +450,8 @@ number of partially-received objects they track; an unbounded map is a trivial
 memory-exhaustion attack from anyone with a transmitter.
 
 Erasure coding provides **availability, not integrity**. A wrongly
-reconstructed object still fails its MAC or signature check, so nothing here is
-load-bearing for security.
+reconstructed object still fails its MAC or signature check, so fragmentation
+is not part of the security argument.
 
 ---
 
@@ -443,11 +461,11 @@ Not implemented. No counterpart exists to interoperate with, and the design may
 still move.
 
 Optional, and deliberately the rare path. Most emergency traffic *should* be
-plaintext broadcast — "need water at 123 Main" is meant to be readable by
+plaintext broadcast: "need water at 123 Main" is meant to be readable by
 anyone who can help.
 
-When required: hybrid **X25519 + ML-KEM-768**, Noise-style, matching current
-TLS and Signal practice. Three properties keep it affordable:
+When required: hybrid **X25519 + ML-KEM-768**, Noise-style, as current TLS and
+Signal deployments do. Three properties keep it affordable:
 
 1. **Peer KEM public keys are cached forever.** Only the first exchange with a
    given peer pays the 1184-byte cost.
@@ -463,7 +481,7 @@ Payloads are CBOR maps with single-character keys. The store
 ([§9.2](#92-merge-semantics)) treats them as opaque; only the app layer
 interprets them.
 
-> **[PLANNED]** — the schema below is not yet encoded or decoded anywhere. The
+> **[PLANNED]** The schema below is not yet encoded or decoded anywhere. The
 > store handles payloads as opaque bytes today, so the merge semantics in
 > [§9.2](#92-merge-semantics) are implemented but this schema is not.
 
@@ -474,14 +492,14 @@ interprets them.
 | Key | Meaning |
 |---|---|
 | `t` | Fact kind |
-| `s` | Status enum — 0 ok, 1 need-help, 2 injured, 3 evacuating, 4 has-resources |
+| `s` | Status enum: 0 ok, 1 need-help, 2 injured, 3 evacuating, 4 has-resources |
 | `p` | `[lat, lon, accuracy_m]` |
 | `n` | People at this location |
 | `r` | Resource needs, as enum values |
 | `ttl` | Remaining hops or hours |
 
 About 30 bytes. With framing and a TESLA trailer that is 66 bytes, or 98 when
-a disclosure is attached ([§3.1](#31-tesla-body)) — one frame either way.
+a disclosure is attached ([§3.1](#31-tesla-body)), one frame either way.
 
 ### 9.1 Fact kinds
 
@@ -493,15 +511,16 @@ forward at once.
 
 Keys are `(author, kind)`, and **an author may only write keys it owns.**
 Two writes to one key therefore always come from the same author and are
-totally ordered by that author's sequence number. Conflicts are structurally
-impossible; the merge rule is `seq > existing.seq`. No CRDT machinery required.
+totally ordered by that author's sequence number. Conflicts cannot occur, and
+the merge rule is `seq > existing.seq`, with no CRDT machinery.
 
-Equal sequence numbers are rejected, making merge idempotent — the same fact
-arriving by three mesh paths is harmless.
+Equal sequence numbers are rejected, which makes merge idempotent: the same
+fact arriving by three mesh paths is harmless.
 
 Independent claims are **never collapsed**. "Bridge out at 5th St" is Alice's
-claim, not global truth, and the UI renders "3 people report bridge out". That
-is the misinformation resistance an emergency network needs.
+claim, not global truth, and the UI renders "3 people report bridge out".
+Showing agreement between independent reporters, rather than a single answer,
+is how the store resists misinformation.
 
 Sequence numbers **MUST NOT** be trusted before authentication. Feeding
 unverified frames to the store voids every guarantee above.
@@ -518,8 +537,8 @@ A receiver **MUST** process every inbound frame in the order below. The order is
 normative, not stylistic: each step establishes a precondition the next one
 relies on. In particular, **the security condition (step 6) MUST be evaluated
 before any MAC is trusted.** An implementation that verifies the MAC first and
-checks the clock afterwards has no security at all — an attacker simply waits
-for the key to be disclosed and forges freely.
+checks the clock afterwards has no security at all: an attacker waits for the
+key to be disclosed and forges freely.
 
 ```text
  1. Decode the 13-byte header                                          §3
@@ -570,7 +589,7 @@ Three requirements that are easy to miss and expensive to get wrong:
   verified against a root it already trusted. Pinning a `tesla_root` heard over
   the air defeats the entire identity model.
 - A frame carrying an invalid disclosure **MUST** be discarded whole. It
-  **MUST NOT** be buffered — half-accepting it lets an attacker fill the buffer
+  **MUST NOT** be buffered; half-accepting it lets an attacker fill the buffer
   with frames that can never verify.
 - Receivers **MUST** bound the per-peer buffer. Unbounded buffering is a
   memory-exhaustion attack available to anyone with a transmitter.
@@ -607,7 +626,7 @@ bytes actually held.
 |---|---|---|
 | `WrongClass` | Well-formed, but not the class this path handles | [§4](#4-message-classes) |
 | `UnknownSender` | No pinned cert for this fingerprint | [§2.4](#24-trust-establishment) |
-| `TooLate` | Failed the security condition — the key could already be public | [§6.2](#62-the-security-condition) |
+| `TooLate` | Failed the security condition: the key could already be public | [§6.2](#62-the-security-condition) |
 | `BadDisclosure` | Disclosure does not chain to the anchor, or does not advance it | [§5.4](#54-receiving) |
 
 ### 11.3 Silent drops
@@ -636,7 +655,7 @@ count them and **SHOULD NOT** display them individually.
 | Cert signing domain | `"signet/v1/cert"` |
 | Message signing domain | `"signet/v1/msg"` |
 | Interval length | 30 s (provisional; Clock decides) |
-| Disclosure delay `d` | Dynamic, ≥ 2 intervals |
+| Disclosure delay `d` | 2 intervals by default; widening with uncertainty is planned ([§6.4](#64-degradation-planned)) |
 | Chain length | 4096 intervals ≈ 34 h |
 | Cert lifetime | 30 days |
 | Erasure redundancy `r` | 0.30 |
@@ -655,7 +674,6 @@ Security level 1, in bytes:
 | Ed25519 | 32 | 64 | classical, **not PQ** |
 | SQIsign-I | 64 | 204 | NIST round 3 |
 | MAYO-1 | 614 | 392 | NIST round 3 |
-| HAWK-512 | 1006 | 555 | NIST round 3 |
 | FN-DSA-512 | 897 | 666 | FIPS 206 (draft) |
 | ML-DSA-44 | 1312 | 2420 | FIPS 204 |
 | SLH-DSA-128s | 32 | 7856 | FIPS 205 |
@@ -668,19 +686,20 @@ Security level 1, in bytes:
 The 4-bit `version` nibble **MUST** be checked before anything else, and
 unknown versions **MUST** be rejected rather than best-effort parsed.
 
-Four bits allows 16 versions. That is a deliberate ceiling: a protocol on this
-medium that needs a 17th wire format has failed at something more fundamental
-than encoding.
+Four bits allows 16 versions, which should be ample for a protocol on this
+medium.
 
 ---
 
 ## 14. Open questions
 
-Tracked honestly rather than deferred silently:
+Known open problems, numbered so other documents can cite them:
 
 1. **Beacon signatures are not post-quantum.** drand uses BLS12-381. A quantum
-   adversary could forge future beacon values, weakening the time floor.
-   Mitigation: never treat the beacon as sole authority. A hash-chain beacon
+   adversary could forge future beacon values. Fed to a receiver, a forged
+   floor only causes early refusal; fed to a sender, it moves the sender's
+   clock forward, which breaks the security condition (item 8). Mitigation:
+   never treat the beacon as sole authority. A hash-chain beacon
    would close this properly.
 2. **Interval length is unmeasured.** 30 s is a guess. Too short wastes airtime
    on disclosures; too long widens the buffering window and delays verification.
@@ -689,13 +708,76 @@ Tracked honestly rather than deferred silently:
    handles poorly. Interleaving may be required.
 4. **FN-DSA is a draft standard.** FIPS 206 is not final. If a round-3 candidate
    with a 204-byte signature is standardised, the `Signed` class becomes
-   dramatically cheaper and some of [§4.1](#41-choosing-a-class)'s tiering may become unnecessary.
-5. **SQIsign signing latency is unmeasured on target hardware.** Compact
-   signatures are worthless if signing takes seconds on a phone with a dying
+   much cheaper and some of [§4.1](#41-choosing-a-class)'s tiering may become unnecessary.
+5. **SQIsign signing latency is unmeasured on target hardware.** A compact
+   signature helps little if signing takes seconds on a phone with a dying
    battery. This is Radio work.
 6. **Sybil resistance is absent.** Nothing stops an attacker generating
    unlimited unverified identities and flooding the mesh. Rate limiting that
    survives sybils without infrastructure is unsolved.
+7. **Peer time is not liar-safe.** [§6.3](#63-bounding-uncertainty)'s intersection never leaves a node's
+   own bound, but one overlapping liar chooses where inside it the node lands,
+   which can turn a correct `TooLate` into an acceptance. Marzullo's algorithm
+   tolerates up to `f` liars only while `f` is bounded, and item 6's sybils
+   unbound it. Candidate: count only peers whose certs chain to a pinned root.
+8. **The sender's half of the security condition is unspecified.**
+   [§6.2](#62-the-security-condition) bounds the receiver's clock. A sender whose clock runs fast
+   discloses `K[i]` while receivers with correct clocks still accept interval
+   `i`, and a forged beacon floor (item 1) pushes a sender's clock exactly that
+   way. `Sender::beacon` takes a single clock reading. Candidate: disclose only
+   once the sender's *earliest* possible time has passed the disclosure instant.
+9. **The chain outlives neither the event nor the cert.** 4096 intervals at
+   30 s is about 34 hours; a cert lives 30 days and its root signs a handful of
+   times ever. No re-commitment is specified, so a sender's `Tesla` path ends at
+   hour 34 of a 72-hour event. Candidate: the operational key signs the next
+   chain's commitment, one `Signed` message per chain.
+10. **The last message never verifies.** A `Tesla` frame verifies only once its
+    sender transmits again at least `d` intervals later. The message sent just
+    before a battery dies, often the one that matters most, never does.
+    Candidate: a sender that knows it is going down sends `Signed`.
+11. **A stale but valid disclosure drops its whole frame.** When a flood mesh
+    delivers interval 5's frame before interval 4's, the older frame's
+    disclosure no longer advances the anchor, so [§5.4](#54-receiving) and R16–R17 discard it,
+    payload included, although it would have verified later. Candidate: hash
+    the anchor down to check the disclosure, ignore it and buffer the frame if
+    it matches, and discard only on a mismatch. That changes R16 and R17.
+12. **The airtime model ignores per-fragment framing.** `signet sim` divides a
+    multi-frame object by the full 237-byte frame, but every fragment frame
+    spends 13 + 7 bytes on headers ([§7.1](#71-fragment-header)), so a fragment holds 217. The fix
+    waits on one `Signed` framing decision: whether a fragmented `Signed`
+    object carries its own 13-byte header.
+13. **Trust roots beyond emergency services.** Any root a receiver pins works
+    today, but the roles are civilian, responder and EOC, and the ✅ badge reads
+    as official authority. In a shutdown the trusted sources are groups people
+    chose beforehand, such as a students' union, volunteer medics or a
+    newsroom, and the badge does not say which one. Candidate: the badge
+    carries the name the receiver gave the root when pinning it, so a warning
+    reads as verified by that group.
+14. **Corroboration is unspecified.** The store keeps independent claims apart
+    ([§9.2](#92-merge-semantics)), the right base for "where is the danger": several people the
+    receiver knows reporting the same place. Nothing defines when two reports
+    concern the same place and time, or which reporters count, and item 6's
+    sybils make counts of strangers meaningless. Facts are keyed by author and
+    kind, so each reporter holds one current report per kind and a second
+    danger report replaces the first. There is also no fact kind for danger at
+    a location: the planned status values are ok, need help, injured,
+    evacuating and has resources ([§9](#9-fact-payloads)). Candidate: a danger kind carrying
+    location and time, counted only from reporters verified in person (🔑) or
+    chained to a pinned root (✅).
+15. **Forwarded messages need signatures.** Reaching many people means
+    messages get passed on: relayed across meshes, carried by hand, copied into
+    SMS or another app. A `Tesla` frame that arrives after its key is disclosed
+    fails the security condition ([§6.2](#62-the-security-condition)), so a forwarded copy cannot be
+    checked. A `Signed` message can be checked by whoever receives it,
+    whenever. For this scenario the unbuilt `Signed` send path is the main gap,
+    and signature size decides whether a verified warning fits the messages
+    people actually forward.
+16. **Reporting danger can endanger the reporter.** A signed report names its
+    sender ([§1.3](#13-non-goals)), which is what makes it credible and also what identifies
+    the person who sent it. In a shutdown that can put them at risk. A report
+    verifiable as coming from some member of a group, without saying which
+    member, needs group or ring signatures or anonymous credentials. Open
+    research, not a planned feature.
 
 ---
 
@@ -703,7 +785,7 @@ Tracked honestly rather than deferred silently:
 
 Every `MUST`, `MUST NOT`, `SHOULD` and `SHOULD NOT` in this document, in one
 place. An implementer can work down this list; a reviewer can check it against
-a codebase. Requirement text is compressed — the section is authoritative.
+a codebase. Requirement text is compressed; the section is authoritative.
 
 ### Decoding
 

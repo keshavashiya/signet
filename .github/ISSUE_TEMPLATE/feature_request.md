@@ -24,4 +24,4 @@ assignees: ''
 ## Alternatives considered
 
 <!-- Including "do nothing". ARCHITECTURE.md has a list of already-rejected
-     alternatives — check it first. -->
+     alternatives; check it first. -->

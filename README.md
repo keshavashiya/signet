@@ -1,4 +1,4 @@
-# Signet 🕯
+# Signet
 
 [![CI](https://github.com/keshavashiya/signet/actions/workflows/ci.yml/badge.svg)](https://github.com/keshavashiya/signet/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -6,34 +6,33 @@
 
 By Keshav Ashiya
 
-**In a disaster, you cannot tell whether the evacuation order is real.**
+**When a flood, an earthquake or a shutdown takes the network down, people cannot tell which warnings are real.**
 
-Signet is a post-quantum authenticity layer for off-grid mesh networks. It rides
-inside whatever payload your radio already gives you — Meshtastic, Bluetooth
-mesh, Reticulum, plain LoRa — and answers one question the existing stacks
-cannot: *did this message really come from who it claims?*
+Signet is a post-quantum authenticity layer for off-grid mesh networks, written
+in Rust. It is designed to ride inside the payload of a mesh people already use
+(Meshtastic, Bluetooth mesh, Reticulum, plain LoRa) and let a receiver check
+who sent a message, with keys a quantum computer cannot forge. It needs no
+servers, accounts or internet connection.
 
-A signet ring is a seal pressed into wax: the oldest authentication technology
-there is, requiring no infrastructure at all, and proving the sender **without
-hiding the letter**. That is exactly this protocol's design — authenticity
-first, confidentiality optional. It is also why Signet is legal on amateur
-bands, where encryption is prohibited but signing is not.
+Signet authenticates messages and does not encrypt them, so the text stays
+readable. That also keeps it usable on amateur radio bands, where rules in many
+countries forbid encoding a message to hide its meaning. The name comes from
+the signet ring: a seal that shows who sent a letter without hiding what it
+says.
 
-*No servers. No accounts. No internet. No blockchain.*
-
-👉 **[Full documentation](https://keshavashiya.github.io/signet)** — protocol
-spec, architecture, integration guides.
+[Full documentation](https://keshavashiya.github.io/signet): protocol spec,
+architecture, integration guides.
 
 ---
 
-## Quick Start
+## Quick start
 
 ```bash
 git clone https://github.com/keshavashiya/signet.git
 cd signet
 cargo test --workspace     # 105 tests, no network, no hardware, no C toolchain
 
-# What does authenticity cost on a 200-byte lossy link?
+# What does authenticity cost on a 237-byte lossy link?
 cargo run --bin signet -- sim
 
 # Two nodes with real FN-DSA keys over a lossy channel
@@ -48,15 +47,16 @@ Ed25519            NO       64       1      1026    80.0%      1283  1x  what ev
 TESLA (SHA-256)   yes       48       1       903    80.0%      1129  1x  16B MAC + 32B disclosed key
 SQIsign-I         yes      204     3/2      5904    89.6%      6590  6x  NIST round 3; slow to sign
 MAYO-1            yes      392     3/2      5904    89.6%      6590  6x  NIST round 3
-HAWK-512          yes      555     4/3      7873    81.9%      9610  9x  NIST round 3
 FN-DSA-512        yes      666     6/4     11809    90.1%     13105  12x  FIPS 206 draft
 ML-DSA-44         yes     2420   15/11     29522    83.6%     35323  31x  FIPS 204, the safe default
 SLH-DSA-128s      yes     7856   45/34     88566    82.6%    107238  95x  FIPS 205, hash-based root
 ```
 
-Read that bottom half again. **Making an off-grid mesh post-quantum the obvious
-way costs 31x the airtime per message.** That is why nobody has done it, and
-why this project exists.
+On this link, signing every message with ML-DSA-44 costs 31 times the effective
+airtime of a TESLA tag, and SLH-DSA-128s costs 95 times. That cost is the
+problem Signet's design answers. The figures are computed from published
+signature sizes and the Semtech LoRa time-on-air formula; no radio has measured
+them yet, and [the simulator](#the-simulator) lists what the model leaves out.
 
 ---
 
@@ -69,104 +69,106 @@ why this project exists.
 | [Reticulum](https://reticulum.network) | X25519 / Ed25519 / AES-256 | ❌ |
 | [Briar](https://briarproject.org) | Ed25519 / X25519 | ❌ |
 
-Meshtastic's own documentation states it plainly: quantum-resistant key exchange
-*"doesn't fit LoRa packet constraints."* The incumbent concedes the gap in its
-own docs.
+Meshtastic's documentation says quantum-resistant key exchange *"doesn't fit
+LoRa packet constraints."*
 
-Radio traffic is trivially interceptable — the textbook
-harvest-now-decrypt-later target. But the sharper problem is not confidentiality:
+Of the three jobs a mesh's cryptography does, per-message authentication is the
+one that becomes unaffordable on a radio link once it has to be post-quantum:
 
-- **Encryption already survives.** AES-256 only loses half its margin to Grover.
-- **Key exchange is a one-time, cacheable cost.** Ugly, amortises to nothing.
-- **Per-message authenticity is what breaks.** And in a disaster, authenticity
-  matters *more* than secrecy — misinformation kills, and "this bridge is out"
-  needs to provably come from the county EOC.
+- **Encryption mostly survives.** Grover's algorithm halves AES-256's security
+  margin, which still leaves 128 bits.
+- **Key exchange is paid once** per pair of nodes and can be cached.
+- **Per-message signatures are what break.** A post-quantum signature is 3 to
+  120 times larger than Ed25519's 64 bytes, and it is paid on every message.
+
+When the network is down, knowing who sent a message matters more than hiding
+it. "This bridge is out" has to come provably from the emergency operations
+centre, and "the danger is on this street" from someone the reader already
+trusts.
 
 ## How it works
 
-Two message classes, and choosing between them is the whole contribution.
+Signet has two message classes and picks one per message, by how much is at
+stake.
 
-### Class A — TESLA hash chains (routine traffic, 16–48 bytes)
+### Class A: TESLA hash chains (routine traffic, 16–48 bytes)
 
 A sender commits to the end of a one-way hash chain, MACs each interval's
 traffic with a key only it holds, and discloses that key once the interval
 closes. A receiver that got the message *before* the key went public knows
-nobody else could have forged it.
+nobody else could have forged it. This is TESLA (Perrig, Canetti, Tygar and
+Song, 2000; [RFC 4082](https://www.rfc-editor.org/rfc/rfc4082)), which μTESLA
+later fitted to sensor radios and Galileo's OSNMA uses to authenticate
+satellite navigation messages.
 
 ```text
 [16B MAC]                       typical
 [16B MAC] [32B disclosed key]   first frame of each interval
 ```
 
-**50x smaller than an ML-DSA-44 signature**, post-quantum by construction (it is
-nothing but SHA-256), and natively loss-tolerant — miss three disclosures and
-the fourth recovers all of them by hashing forward. Disclosure is per-interval,
-so a sender bursting several messages pays 32 bytes once.
-See [`chain.rs`](crates/core/src/chain.rs) and [`session.rs`](crates/core/src/session.rs).
+The 48-byte form is 50 times smaller than an ML-DSA-44 signature. It is
+post-quantum because it uses nothing but SHA-256, and it tolerates loss: a
+receiver that misses three disclosures recovers all of them from the fourth by
+hashing forward. A sender pays the 32-byte disclosure once per interval,
+however many messages it sends in it. See [`chain.rs`](crates/core/src/chain.rs)
+and [`session.rs`](crates/core/src/session.rs).
 
-### Class B — post-quantum signature (authoritative traffic, 666 bytes)
+### Class B: post-quantum signature (authoritative traffic, 666 bytes)
 
-TESLA gives authenticated broadcast, **not** non-repudiation: once a key is
-disclosed, anyone can forge that interval retroactively. So the design tiers by
-consequence.
+TESLA authenticates broadcast but gives no non-repudiation: once a key is
+disclosed, anyone can forge that interval after the fact. Messages that must
+stay attributable get an FN-DSA-512 signature instead.
 
 | Message | Class | Cost |
 |---|---|---|
 | Status beacon, chat, sensor reading | TESLA | 16–48 B |
 | Evacuation order, official alert, credential | PQ signature | 666 B |
 
-Authoritative messages are rare. Six frames is affordable when it is the
-message that moves people.
+Authoritative messages are rare, so their six frames are affordable. The
+signature and certificate code is built; the `Signed` send path is not yet
+([Status](#status)).
 
 ### The hard part: time
 
-TESLA needs a loose upper bound on the sender's clock, and off-grid there is no
-NTP. Signet tightens a local monotonic clock opportunistically — GPS where
-available, interval arithmetic on peer contact, a public randomness beacon as a
-monotonic floor — then **widens the disclosure delay to cover the remaining
-uncertainty, falling back to Class B when uncertainty exceeds threshold.**
+TESLA needs a bound on the sender's clock, and off-grid there is no NTP. Signet
+keeps a local monotonic clock and tightens it when it can: from a GPS fix, from
+peers' bounds, and from a public randomness beacon used as a floor. The
+disclosure delay widens to cover the uncertainty that remains, and when that is
+too much the design falls back to Class B.
 
-The security condition and the uncertainty arithmetic are implemented
-([`time.rs`](crates/core/src/time.rs)); the *sources* of a good bound are the
-Clock phase.
-The system degrades instead of failing — run
-`signet demo --uncertainty-ms 600000` to watch every frame get correctly
-refused. See [`docs/protocol/time.md`](docs/src/protocol/time.md).
-
----
-
-## Table of Contents
-
-- [Status](#status)
-- [Using the library](#using-the-library)
-- [Integration](#integration)
-- [The simulator](#the-simulator)
-- [Hard rules](#hard-rules)
-- [Roadmap](#roadmap)
-- [Development](#development)
-- [Security](#security)
-- [Architecture](#architecture)
+The security condition and the interval arithmetic are built
+([`time.rs`](crates/core/src/time.rs)). The time sources, the Class B fallback,
+and peer bounds that stay safe when some peers lie are open work (the Clock
+phase, and [PROTOCOL.md §14](PROTOCOL.md#14-open-questions)). Until then a
+receiver refuses what it cannot check: `signet demo --uncertainty-ms 600000`
+shows every frame correctly refused. See
+[`docs/protocol/time.md`](docs/src/protocol/time.md).
 
 ---
 
 ## Status
 
-**Alpha — Airtime and Protocol complete.** The protocol is specified and
-implemented end to end: real FN-DSA-512 certificates, TESLA chains, the
-security condition, erasure-coded fragmentation, and a verified fact store.
-105 tests, no radio yet.
+**Alpha: Airtime and Protocol are done.** The protocol is specified and
+implemented: real FN-DSA-512 certificates, TESLA chains, the security
+condition, erasure-coded fragmentation and a verified fact store, with 105
+tests. Nothing has run on a radio yet.
 
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
 | **Airtime** | What authenticity costs on a lossy link | ✅ done | `signet sim` |
 | **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
-| **Radio** | Meshtastic over real LoRa hardware | ⬜ next | two T-Beams |
-| **App** | The thing a person holds | ⬜ | five buttons, offline map |
+| **Warnings** | Verified warnings that work in a disaster and in a shutdown | ⬜ next | one end-to-end test per scenario |
+| **Radio** | Meshtastic over real LoRa hardware | ⬜ | two T-Beams |
 | **Clock** | Time sync without infrastructure | ⬜ | the research contribution |
-| **Bluetooth** | Phone-to-phone, no hardware | ⬜ | BLE transport |
+| **Integration** | Signet inside the mesh apps people already use | ⬜ | bindings, one host app showing the badge |
 
-What Protocol does **not** have: a `Signed`-class send path (the primitive is
-there, the framing is not), ML-KEM confidentiality, and any transport at all.
+There is no Signet app on the roadmap. Meshtastic, Bitchat and Reticulum
+already have the apps people use, so Signet goes into them. An app of our own
+is the fallback if no host will carry it.
+
+Not built yet: the `Signed` send path (the primitive is there, the framing is
+not; Warnings builds it), ML-KEM confidentiality, any radio transport, and the
+bindings and text footer described under [Integration](#integration).
 
 ## Using the library
 
@@ -208,19 +210,21 @@ let reports = store.by_kind(BRIDGE_OUT).count();   // "3 people report…"
 
 ## Integration
 
-**An end user cannot add a crypto layer to a compiled app.** Bitchat has no
-plugin API. What actually works, ranked by realism:
+A user cannot add a cryptographic layer to a compiled app, and Bitchat has no
+plugin API. So Signet is meant to go in through the apps people already use,
+and every path except the fallback needs that app's maintainers to agree.
+**None of these paths is built yet.**
 
-| You are | What you do |
+| You are | Planned path |
 |---|---|
-| **Meshtastic owner** | Install the Signet app. Private portnum over the phone API — **no firmware change, no fork**. |
-| **Any app, any OS** | Share-sheet companion. Compose in Signet → Share → Bitchat. Native OS primitive, zero cooperation needed. |
-| **Bitchat user, Android** | Share sheet, or sideload a Signet-enabled fork. |
-| **Bitchat user, iOS** | Share sheet, or wait for upstream. Nothing else is honest. |
-| **A maintainer** | Three lines. |
+| **An app maintainer** | Call Signet's sign and verify functions. The roadmap is built on this path. |
+| **Meshtastic user** | A Meshtastic app with Signet in it, using a private portnum over the phone API, so the node's firmware does not change. |
+| **Bitchat user, Android** | Upstream support, or a Signet-enabled fork installed by hand. |
+| **Bitchat user, iOS** | Upstream support. |
+| **Fallback** | A Signet companion app that needs no one's cooperation: paired with a Meshtastic node, or used through the share sheet with any app. Built only if no host takes Signet. |
 
-For maintainers, integration is deliberately trivial — UniFFI generates the
-Swift and Kotlin bindings from the same Rust core:
+The planned maintainer API is two calls, with Swift and Kotlin bindings
+generated from the Rust core by UniFFI:
 
 ```swift
 let payload = signet.sign(text)                 // send path
@@ -229,26 +233,26 @@ if let v = signet.verify(payload) {             // receive path
 }
 ```
 
-Make it a protocol negotiation and nobody adopts it. Make it a function call
-that returns a badge and there is a chance.
-
-Signet is also designed to survive being carried as ordinary text through a
-transport that knows nothing about it:
+A message may also have to cross an app that knows nothing about Signet, so
+the integration guide specifies a plain-text footer:
 
 ```text
-Evacuate north of 5th St
+Need water at 12 Main St, 4 people
 --signet:1 from=GzJbRFwL2FM auth=n0wqfhHThbBsk_ohSOfQWw
 ```
 
-A vanilla client shows the text plus one footer line; a Signet client verifies,
-hides the footer, and renders ✅ **EOC verified**. The marker is plain ASCII and
-says what it is, so someone who has never heard of Signet can search the word
-and find out rather than seeing line noise.
+An app without Signet shows the text plus one footer line. A Signet client
+verifies it, hides the footer and shows a badge, here 🔑 **known sender**. The
+marker is plain ASCII and names itself, so someone who has never heard of
+Signet can search for it.
 
-TESLA's 16-byte MAC encodes to 22 base64url characters, so a typical footer is
-~55 characters — tolerable in a chat bubble. A 666-byte signature is ~900 and
-is not, which is one more argument for the two-tier design. Format is specified
-in [the integration guide](docs/src/guide/integration.md#footer-format).
+A 16-byte MAC makes a footer of about 55 characters; a 666-byte signature
+would need about 900, so only routine `Tesla` traffic uses a footer. An
+evacuation order must be `Signed` ([PROTOCOL.md §4.1](PROTOCOL.md#41-choosing-a-class))
+and never travels this way. A footer also keeps TESLA's timing: a Signet client
+has to see it before that interval's key is disclosed, 30–60 s at the default
+schedule, and it verifies once a later message brings the key. The format is in
+[the integration guide](docs/src/guide/integration.md#footer-format).
 
 ## The simulator
 
@@ -259,25 +263,31 @@ signet sim --sweep --csv sim-out/air.csv    # 0-50% loss, machine-readable
 signet sim --sf 7 --bw 125                  # a different LoRa preset
 ```
 
-The model is analytic, not Monte Carlo — closed-form binomials are exact and one
-dependency lighter. Two honest caveats:
+The model is analytic (closed-form binomials), not Monte Carlo. What it leaves
+out:
 
-- Loss is modelled as independent. Real meshes lose bursts, which makes
-  multi-frame messages *worse* than shown — every number here flatters the
-  large-signature schemes.
-- Multi-frame objects are erasure coded, not retransmitted. On a broadcast
-  medium with no back-channel this beats ARQ, and it is why published
-  ML-KEM-over-LoRa handshakes needing 28–62 frames are worse than necessary.
+- **Burst loss.** Loss is modelled as independent, but real meshes lose
+  bursts, which makes multi-frame messages worse than shown. Every number here
+  flatters the large-signature schemes.
+- **Retransmission.** Multi-frame objects are erasure coded, not
+  retransmitted. On a broadcast medium with no back-channel this beats ARQ,
+  and it is why published ML-KEM-over-LoRa handshakes needing 28–62 frames are
+  worse than necessary.
+- **Per-fragment framing.** A multi-frame message is divided by the full 237
+  bytes, while each fragment frame also carries 20 bytes of Signet and fragment
+  headers, so the largest signatures need more frames than shown. This flatters
+  them too.
 
 ## Hard rules
 
-Ten non-negotiables that keep the scope honest and the code deployable. Full
-text and reasoning in [CONTRIBUTING.md](CONTRIBUTING.md#hard-rules):
+The project's ten rules; the full text and the reasons are in
+[CONTRIBUTING.md](CONTRIBUTING.md#hard-rules):
 
-1. `signet-core` stays `no_std` — it has to run on an ESP32.
-2. `signet-core` stays hash-only — no post-quantum primitive in `core`.
+1. `signet-core` stays `no_std`, so it can run on an ESP32.
+2. `signet-core` uses only hash functions; post-quantum primitives live in
+   `signet-crypto`.
 3. Never implement a cryptographic primitive.
-4. No C toolchain — `cargo test` works with zero system dependencies.
+4. No C toolchain: `cargo test` needs no system dependencies.
 5. Parsers never panic on untrusted input.
 6. Every rejection path gets a test.
 7. Wire changes update `PROTOCOL.md` in the same PR.
@@ -288,9 +298,9 @@ text and reasoning in [CONTRIBUTING.md](CONTRIBUTING.md#hard-rules):
 
 ## Roadmap
 
-See [`docs/src/roadmap`](docs/src/roadmap/README.md). Short version: **Airtime,
-Protocol and Radio are the project.** Everything after is contingent on the
-hardware numbers holding up.
+See [`docs/src/roadmap`](docs/src/roadmap/README.md). In short, Signet makes a
+warning checkable while the network is down and leaves carrying it to the apps
+people already use. The roadmap page also lists what is still open.
 
 ## Development
 
@@ -320,21 +330,21 @@ a hash function. See [CONTRIBUTING.md](CONTRIBUTING.md).
 ## Security
 
 Signet is **alpha and unaudited**. Do not rely on it where being wrong has
-consequences. The design is documented in [PROTOCOL.md](PROTOCOL.md) precisely so it can
-be attacked on paper before anyone trusts it in the field.
+consequences. [PROTOCOL.md](PROTOCOL.md) documents the design in full so it can
+be reviewed before anyone uses it in the field.
 
-Known gaps are tracked openly in [`docs/src/protocol/threat-model.md`](docs/src/protocol/threat-model.md)
-— including the one where a public randomness beacon's own signature is not
-post-quantum.
+Known gaps are listed in
+[`docs/src/protocol/threat-model.md`](docs/src/protocol/threat-model.md),
+including a public randomness beacon whose own signature is not post-quantum.
 
-To report a vulnerability, do not open a public issue — use GitHub's private
-reporting via the Security tab. See [SECURITY.md](SECURITY.md).
+To report a vulnerability, use GitHub's private reporting (the Security tab),
+not a public issue. See [SECURITY.md](SECURITY.md).
 
 ## Architecture
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the layer model, crate boundaries,
-and the reasoning behind each design decision.
+[ARCHITECTURE.md](ARCHITECTURE.md) covers the layer model, the crate
+boundaries and the reasoning behind each design decision.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

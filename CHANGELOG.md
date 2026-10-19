@@ -12,6 +12,86 @@ Implementations should pin a commit.
 
 ### Changed
 
+- **Every document separates what is built from what is planned.** The
+  integration paths, UniFFI bindings, text footer, transport adapters and
+  over-the-air cert requests are marked as not built; the dynamic disclosure
+  delay and the `Signed` fallback ([PROTOCOL.md §6.4](PROTOCOL.md#64-degradation-planned))
+  and the time sources (§6.3) as planned; the airtime figures as computed. Goal
+  2 of §1.2 now claims post-quantum authentication, not protection against
+  harvest-now-decrypt-later, since nothing is encrypted. §14 item 1 names the
+  sender as the victim of a forged beacon, matching item 8. The cert size in
+  the `cert` and `frag` docs is 1617 bytes without a KEM key, not 2.6 KiB.
+  Claims nobody can check (the oldest authentication technology, ham radio's
+  best disaster network, adapters of about 150 lines, no published cost
+  model) are gone, and CONTRIBUTING lists Windows among the CI platforms.
+
+- **A new `Warnings` phase, before Radio.** It builds what a disaster and a
+  shutdown both need: the `Signed` send
+  path, both halves of the security condition, chain rollover, `Signed` for a
+  sender's last message, tolerant handling of stale disclosures, badges that
+  name the group, and danger reports with a rule for when they agree. Its exit
+  criterion is one end-to-end test per scenario. Radio and Clock follow it.
+
+- **The roadmap opens with its scope.** Signet takes on proof of who sent a
+  message, cheap enough for the links that are left. The section says whom that
+  serves, what is left to other projects (carrying messages, secrecy,
+  anonymity, judging what is true) and when the scope counts as met. A table
+  maps each part of the problem to Signet's answer and its status, and the
+  phases follow.
+
+- **The shutdown scenario is written up.** The roadmap compares a shutdown
+  with a disaster: whom people trust, how danger is known, how messages travel
+  and stay verifiable, who is at risk for sending, and which time sources
+  survive. PROTOCOL.md §14 gains four open questions: trust roots beyond
+  emergency services, corroboration, forwarded messages needing signatures,
+  and the reporter's safety.
+
+- **Shutdowns are named alongside disasters.** The README and the docs now
+  say the network can be down because of a flood, an earthquake or a
+  shutdown, and that a warning can come from any group people already trust,
+  not only an emergency operations centre.
+
+- **The roadmap ends inside other people's apps.** `Integration` replaces the
+  standalone `App` phase and the `Bluetooth` transport phase, and comes after
+  `Clock`. Signet goes into Meshtastic, Bitchat and Sideband instead of shipping
+  a mesh app of its own, and phone-to-phone reach comes through existing
+  Bluetooth mesh apps. No single host carries the phase, because a host app can
+  be blocked. A companion app of our own is the fallback if no host will carry
+  Signet. The threat model now covers a blocked host and states that Signet
+  offers no anonymity.
+
+- **The clock security reasoning is corrected.** The docs said a lying peer
+  could only widen an intersection of time bounds. Intersection never widens,
+  and one overlapping liar steers it anywhere inside a node's own bound, which
+  can turn a correct `TooLate` into an acceptance;
+  `intersect_takes_the_tighter_constraint` now pins that case. The beacon
+  caveat named the wrong victim: a forged future floor only makes a receiver
+  refuse early, but it makes a sender disclose early, which is the dangerous
+  direction. Both are open questions in PROTOCOL.md §14 now, with four more
+  found in the same pass: chain lifetime against cert lifetime, the last
+  message before a battery dies, stale disclosures under reordering, and the
+  airtime model's missing per-fragment framing.
+
+- **The MAC's quantum margin is stated correctly.** It read "halved to 64 bits
+  under Grover". Guessing a tag needs a receiver to check each guess, so Grover
+  does not apply and the 16-byte tag stays at 2⁻¹²⁸ per attempt. Chain values
+  keep 32 bytes because a preimage can be searched offline.
+
+- **HAWK-512 is out of the airtime model.** Its team withdrew it from NIST's
+  round 3 on 29 July 2026. Seven schemes remain and no other figure moved.
+
+- **The footer example is a routine status message, not an evacuation order.**
+  An evacuation order must be `Signed` (R10), and a `Tesla` frame may not carry
+  an authority badge (R12); the old example broke both. The footer's timing
+  constraint is now stated.
+
+- **Smaller corrections.** The airtime model is called computed, not measured:
+  no radio has run it yet. SQIsign at a 12-byte payload costs 2.5x TESLA's
+  airtime, not "within a few percent". The threat model no longer lists
+  harvest-now-decrypt-later as defended, since nothing is encrypted. TESLA is
+  attributed to Perrig et al. and RFC 4082. The quick-start guide's test count
+  is current.
+
 - **`sha2` 0.10 to 0.11 and `hmac` 0.12 to 0.13** (RustCrypto `digest` 0.11).
   `new_from_slice` moved from the `Mac` trait to `KeyInit`; that rename is the
   entire migration. Both crates are used only by `signet-core` and nothing
@@ -53,9 +133,8 @@ Implementations should pin a commit.
 
 - **`signet-core::time` — clocks with explicit uncertainty.** `TimeBound` is an
   interval, never a point, because off-grid there is no source that yields one.
-  Includes the TESLA security condition, interval arithmetic, and
-  Marzullo-style intersection so a peer with a GNSS fix can tighten one
-  without. The *sources* of a good bound remain Clock work; the check is finished.
+  Includes the TESLA security condition, interval arithmetic, and pairwise
+  intersection so a peer with a GNSS fix can tighten one without. The *sources* of a good bound remain Clock work; the check is finished.
 
 - **`signet-core::frag` — erasure-coded fragmentation.** Reed–Solomon over
   GF(2⁸): split into `k` shards, transmit `n > k`, reconstruct from any `k`.
@@ -97,8 +176,8 @@ Implementations should pin a commit.
   spec-with-implementation, crate-extraction discipline, phase naming, and the
   refused-feature list. A PR breaking one is rejected without discussion.
 
-  Phases are named for what they deliver — `Airtime`, `Protocol`, `Radio`,
-  `App`, `Clock`, `Bluetooth` — throughout the codebase, docs, and spec.
+  Phases are named for what they deliver (`Airtime`, `Protocol`, `Warnings`,
+  `Radio`, `Clock`, `Integration`) throughout the codebase, docs, and spec.
 
 - **TESLA chain values are 32 bytes, not 16.** The draft spec quoted a 32-byte
   trailer (16 B MAC + 16 B key). That was wrong: forging interval `i+1` from a
@@ -169,14 +248,14 @@ Implementations should pin a commit.
 - **`signet` CLI — airtime simulator (`signet sim`).** The Airtime deliverable.
   Models authentication cost over a constrained lossy link using Semtech LoRa
   time-on-air, closed-form binomial delivery probability, and erasure-coded
-  fragmentation, across eight signature schemes from Ed25519 to SLH-DSA-128s.
+  fragmentation, across seven signature schemes from Ed25519 to SLH-DSA-128s.
   Supports `--sweep` and `--csv` for machine-readable output.
 
   Headline result at Meshtastic LongFast, 237-byte MTU, 30-byte payload,
   20% loss: TESLA costs **1129 ms** of effective airtime per delivered message
   against **35 323 ms** for ML-DSA-44 — a **31x** difference, and 95x for
   SLH-DSA-128s. This is why no off-grid mesh has post-quantum security, and it
-  is the measurement the rest of the design rests on.
+  is the computed result the rest of the design rests on.
   (Originally reported as 38x; corrected under *Changed* when the chain-value
   width was fixed.)
 

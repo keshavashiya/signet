@@ -3,31 +3,29 @@
 //! # Why not retransmission
 //!
 //! A broadcast mesh has no reliable back-channel. Asking for a repair means a
-//! round trip through a flood network that may not have a return path at all,
-//! and every published post-quantum-over-LoRa handshake that does this pays for
-//! it: 28 to 62 frames for a single key exchange.
+//! round trip through a flood network that may not have a return path at all.
+//! Published post-quantum-over-LoRa handshakes that retransmit need 28 to 62
+//! frames for a single key exchange.
 //!
-//! Sending redundancy instead is strictly better here. Split an object into `k`
+//! Sending redundancy instead is better here. Split an object into `k`
 //! shards, transmit `n > k`, and **any `k` that arrive reconstruct it.** No
 //! negotiation, no state at the sender, no round trip.
 //!
 //! # What gets fragmented
 //!
-//! Certs (~2.6 KiB) and `Signed` trailers (666 bytes at FN-DSA-512). Routine
-//! TESLA traffic never fragments — that is the point of it fitting in one
-//! frame.
+//! Certs (1617 bytes without a KEM key) and `Signed` trailers (666 bytes at
+//! FN-DSA-512). Routine TESLA traffic fits in one frame and never fragments.
 //!
 //! # Reed–Solomon, not hand-rolled XOR
 //!
-//! Single-parity XOR recovers exactly one erasure, which is a ceiling this
-//! would hit immediately at realistic loss rates. GF(2⁸) Reed–Solomon handles
-//! arbitrary redundancy, and it is the one piece of maths here where a subtle
-//! bug corrupts silently rather than failing loudly — so it comes from a
-//! reviewed crate rather than this file.
+//! Single-parity XOR recovers exactly one erasure, which realistic loss rates
+//! would exceed at once. GF(2⁸) Reed–Solomon handles any redundancy, and it is
+//! the one piece of maths here where a subtle bug corrupts silently instead of
+//! failing, so it comes from a reviewed crate rather than this file.
 //!
 //! Note that erasure coding is availability, not integrity: a wrongly
-//! reconstructed object still fails its MAC or signature check. Nothing here
-//! is load-bearing for security.
+//! reconstructed object still fails its MAC or signature check, so this
+//! module is not part of the security argument.
 
 use alloc::collections::BTreeMap;
 use alloc::vec;

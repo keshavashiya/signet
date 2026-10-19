@@ -7,7 +7,7 @@ consequences.
 
 Do not open a public issue.
 
-Use GitHub's private reporting — **[Report a
+Use GitHub's private reporting: **[Report a
 vulnerability](https://github.com/keshavashiya/signet/security/advisories/new)**,
 or the Security tab of this repository. The report stays private to you and the
 maintainer until there is a fix to publish.
@@ -18,20 +18,19 @@ There is no bounty.
 
 ## What counts
 
-Anything that lets an attacker forge, replay, or alter a frame that a receiver
-then accepts as authentic — that is the one property this protocol exists to
-provide. Also in scope: a parser that panics on untrusted input, since on a
-radio that is a remote denial of service against a device someone is relying
-on, and rule 5 of the hard rules says it must not happen.
+Anything that lets an attacker forge, replay or alter a frame that a receiver
+then accepts as authentic, since that is the property this protocol exists to
+provide. Also in scope: a parser that panics on untrusted input. On a radio
+that is a remote denial of service against a device someone relies on, and
+hard rule 5 forbids it.
 
 ## What belongs in public
 
 Attacks on the *design* rather than an implementation bug. `PROTOCOL.md` is
-published precisely so it can be attacked on paper before anyone trusts it in
-the field — open a normal issue. Known gaps are already tracked in
-[`docs/src/protocol/threat-model.md`](docs/src/protocol/threat-model.md),
-including the one where a public randomness beacon's own signature is not
-post-quantum.
+published so it can be reviewed before anyone uses it in the field, so open a
+normal issue. Known gaps are listed in
+[`docs/src/protocol/threat-model.md`](docs/src/protocol/threat-model.md) and
+[PROTOCOL.md §14](PROTOCOL.md#14-open-questions).
 
 ## Supported versions
 

@@ -1,11 +1,11 @@
-//! TESLA hash chains — the cheap authentication path.
+//! TESLA hash chains: the cheap authentication path.
 //!
 //! # Why this exists
 //!
 //! A post-quantum signature costs 666 bytes (FN-DSA) to 2420 bytes (ML-DSA-44).
-//! A LoRa frame carries about 200. Signing every message is not an option on
-//! an off-grid mesh, which is why no off-grid mesh has post-quantum security
-//! today.
+//! A LoRa frame carries about 200 to 237. Signing every message is too
+//! expensive on an off-grid mesh, so a post-quantum design needs a cheaper
+//! per-message path.
 //!
 //! TESLA replaces the per-message signature with a MAC whose key is disclosed
 //! *later*. The sender commits to the end of a one-way hash chain, MACs each
@@ -15,7 +15,7 @@
 //!
 //! Per-message cost: a 16-byte MAC, plus a 32-byte key disclosure on the first
 //! frame of each interval. That trailer is **50x smaller** than an ML-DSA-44
-//! signature, and it is post-quantum because it is nothing but SHA-256.
+//! signature, and it is post-quantum because it uses only SHA-256.
 //!
 //! # Chain orientation
 //!
@@ -30,7 +30,7 @@
 //! Interval `i` uses `K[i]`. Disclosing `K[i]` lets anyone recompute every
 //! `K[j]` for `j < i`, and nobody can compute `K[j]` for `j > i`.
 //!
-//! # Loss tolerance comes free
+//! # Loss tolerance costs no airtime
 //!
 //! Miss the disclosure for intervals 4, 5 and 6? Receiving `K[7]` recovers all
 //! of them by hashing forward. That property is why TESLA fits a lossy
@@ -41,14 +41,14 @@
 //! TESLA is authenticated broadcast, **not** non-repudiation. Once `K[i]` is
 //! public, anyone can forge interval `i` retroactively. It is correct for
 //! routine traffic and wrong for authoritative traffic (evacuation orders,
-//! credentials) — those take a real signature. See `PROTOCOL.md` §4.
+//! credentials), which take a real signature. See `PROTOCOL.md` §4.
 //!
 //! # Security condition
 //!
-//! Verification here is purely cryptographic. The *timing* half of TESLA —
-//! rejecting a message that arrived after its key could have been public — is
-//! the caller's job, because it depends on a clock this crate cannot see.
-//! Skipping it makes the MAC meaningless. See `docs/src/protocol/time.md`.
+//! Verification here is purely cryptographic. The *timing* half of TESLA,
+//! rejecting a message that arrived after its key could have been public, is
+//! in [`crate::time`] and is run by [`crate::session`]; the time bound itself
+//! comes from the caller. Skipping the check makes the MAC meaningless. See `docs/src/protocol/time.md`.
 
 use alloc::vec;
 use alloc::vec::Vec;
@@ -64,9 +64,13 @@ pub const KEY_LEN: usize = 32;
 
 /// Length of a truncated MAC on the wire, in bytes.
 ///
-/// 16 bytes gives 128-bit forgery resistance, halved to 64 bits under a
-/// Grover-style search — still far beyond what an attacker gains by forging a
-/// single status beacon inside one disclosure interval.
+/// 16 bytes means a blind forgery lands with probability 2^-128 per try, and
+/// Grover does not shorten that: each guess needs a receiver to check it, one
+/// classical try at a time. Recovering the 256-bit MAC key is a Grover search
+/// of about 2^128 steps, worth anything only before the key is disclosed.
+/// Chain values get no such discount: a preimage of the last disclosed key
+/// stays useful for as long as a receiver hears nothing newer, so they keep
+/// all 32 bytes (`PROTOCOL.md` §5.1).
 pub const MAC_LEN: usize = 16;
 
 /// A single link in a hash chain.

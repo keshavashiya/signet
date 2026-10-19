@@ -10,7 +10,7 @@
 //! [13B wire header][1B flags][4B seq][2B kind][payload][16B MAC][32B disclosure?]
 //! ```
 //!
-//! The MAC covers everything before it — header included, so a relay cannot
+//! The MAC covers everything before it, header included, so a relay cannot
 //! rewrite the sender fingerprint or the interval and still verify.
 //!
 //! # Disclosure is per-interval, not per-message
@@ -31,10 +31,9 @@
 //!
 //! Forging interval `i+1` from a disclosed `K[i]` is a preimage attack, so
 //! preimage resistance protects every future interval. A 128-bit chain value
-//! gives 64-bit resistance under Grover — not a defensible number for a
-//! protocol whose entire premise is post-quantum. 32 bytes it is, and the
-//! per-message cost stays at 16 because disclosure amortises across the
-//! interval.
+//! gives 64-bit resistance under Grover, too weak for a protocol meant to be
+//! post-quantum. So chain keys are 32 bytes, and the per-message cost stays at
+//! 16 because disclosure is spread across the interval.
 
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;

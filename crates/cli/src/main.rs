@@ -2,9 +2,9 @@
 //!
 //! Two commands:
 //!
-//! - `signet sim` — the Airtime model. What does authenticity cost on a
-//!   200-byte lossy link? Answered from published sizes alone.
-//! - `signet demo` — the Protocol path. Two nodes with real FN-DSA keys
+//! - `signet sim`: the Airtime model. What does authenticity cost on a
+//!   237-byte lossy link? Answered from published sizes alone.
+//! - `signet demo`: the Protocol path. Two nodes with real FN-DSA keys
 //!   exchanging verified beacons over a simulated lossy channel.
 
 mod demo;

@@ -7,8 +7,8 @@ with the implementation it sits next to. This page is the shape of it.
 
 ## The central decision
 
-Signet has two message classes, and choosing between them is the whole
-contribution.
+Signet has two message classes and picks one per message, by how much is at
+stake.
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
@@ -30,16 +30,17 @@ able to verify afterwards.
 
 ## Why TESLA is post-quantum
 
-It is nothing but SHA-256. No lattices, no isogenies, no assumptions that a
-quantum computer disturbs. Grover's algorithm halves the effective security of
-a hash, which is why chain values are 256 bits and MACs are truncated to 128.
+It uses only SHA-256, with no lattice or isogeny assumptions for a quantum
+computer to attack. Grover's algorithm would halve a chain value's preimage
+resistance, so chain values stay 256 bits. A MAC tag can be 128 bits, because
+each guess at a tag has to be checked by a receiver and Grover does not help.
 
-This is the least fashionable answer to "make it post-quantum" and, on a
-237-byte link, the only one that works.
+On a 237-byte link, a hash-only scheme is the post-quantum option that fits in
+one frame.
 
 ## Why it suits a lossy link
 
-Gap recovery is free. A receiver anchored at interval 3 that misses the
+Gap recovery costs no airtime. A receiver anchored at interval 3 that misses the
 disclosures for 4, 5 and 6 recovers all three from `K[7]` by hashing forward:
 
 ```text
@@ -55,16 +56,16 @@ Thirteen bytes, fixed, no options.
 
 ```text
 byte 0      version (4 bits) | class (4 bits)
-bytes 1-8   sender fingerprint — truncated operational cert hash
+bytes 1-8   sender fingerprint: truncated operational cert hash
 bytes 9-12  interval index, big-endian u32
-byte 13     flags — bit 0 signals an attached key disclosure
+byte 13     flags: bit 0 signals an attached key disclosure
 bytes 14-19 sequence number (4B) and fact kind (2B)
 bytes 20+   payload, then the class-specific trailer
 ```
 
-Certs are never sent on the hot path. Frames carry an 8-byte fingerprint; a
-receiver missing the cert requests it once and caches it forever. That is what
-keeps a 1.6 KiB credential off a 200-byte link.
+Certs are never sent on the hot path. Frames carry an 8-byte fingerprint, and
+a receiver gets the cert once, ideally out of band, then caches it. That keeps
+a 1.6 KiB credential off a 237-byte link.
 
 ## What is specified elsewhere
 

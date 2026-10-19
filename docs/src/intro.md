@@ -1,44 +1,40 @@
 # Signet
 
-**In a disaster, you cannot tell whether the evacuation order is real.**
+**When a flood, an earthquake or a shutdown takes the network down, people cannot tell which warnings are real.**
 
-Signet is a post-quantum authenticity layer for off-grid mesh networks. It
-rides inside whatever payload your radio already carries — Meshtastic,
-Bluetooth mesh, Reticulum, raw LoRa — and answers the one question the existing
-stacks cannot: *did this message really come from who it claims?*
+Signet is a post-quantum authenticity layer for off-grid mesh networks, written
+in Rust. It is designed to ride inside the payload of a mesh people already use
+(Meshtastic, Bluetooth mesh, Reticulum, raw LoRa) and let a receiver check who
+sent a message, with keys a quantum computer cannot forge.
 
 ## The name
 
-A signet ring is a seal pressed into wax. The oldest authentication technology
-there is, it requires no infrastructure at all, and it proves the sender
-**without hiding the letter**.
+A signet ring is a seal pressed into wax. It shows who sent a letter without
+hiding what the letter says, and it needs no infrastructure.
 
-That is not a loose metaphor. It is the design decision: authenticity first,
-confidentiality optional. It is also why Signet is legal on amateur radio
-bands, where encryption is prohibited but signing is not — which happens to
-make ham radio the most capable long-range disaster network that has never had
-verifiable senders.
-
-It reads as SIG + NET, which was free.
+Signet works the same way: it authenticates messages and does not encrypt them.
+That keeps it usable on amateur radio bands, where rules in many countries
+forbid encoding a message to hide its meaning. The name also reads as SIG + NET.
 
 ## The gap
 
-Every off-grid mesh in production uses classical elliptic-curve cryptography.
-Meshtastic's own documentation concedes why: quantum-resistant key exchange
-*"doesn't fit LoRa packet constraints."*
+The off-grid meshes in wide use authenticate with classical elliptic-curve
+cryptography, which a quantum computer would break. Meshtastic's documentation
+says quantum-resistant key exchange *"doesn't fit LoRa packet constraints."*
 
-Radio traffic is trivially interceptable — the textbook
-harvest-now-decrypt-later target. But the sharper problem is not
-confidentiality:
+Of the three jobs a mesh's cryptography does, per-message authentication is the
+one that becomes unaffordable on a radio link once it has to be post-quantum:
 
-- **Encryption already survives.** AES-256 only loses half its margin to Grover.
-- **Key exchange is a one-time, cacheable cost.** Ugly, but it amortises away.
-- **Per-message authenticity is what breaks.** ML-DSA-44's 2420-byte signature
+- **Encryption mostly survives.** Grover's algorithm halves AES-256's security
+  margin, which still leaves 128 bits.
+- **Key exchange is paid once** per pair of nodes and can be cached.
+- **Per-message signatures are what break.** ML-DSA-44's 2420-byte signature
   spans eleven frames on a 237-byte link.
 
-And in an emergency, authenticity matters *more* than secrecy. Misinformation
-kills, and "this bridge is out" needs to provably come from the county
-emergency operations centre.
+When the network is down, knowing who sent a message matters more than hiding
+it. "This bridge is out" has to come provably from the county emergency
+operations centre, and "the danger is on this street" from someone the reader
+already trusts.
 
 ## What it costs
 
@@ -54,20 +50,21 @@ preset with 20% frame loss:
 | ML-DSA-44 | ✅ | 35 323 ms | 31x |
 | SLH-DSA-128s | ✅ | 107 238 ms | 95x |
 
-Making an off-grid mesh post-quantum the obvious way costs 31x the airtime per
-message. Signet's answer is to make routine traffic cost 16 to 48 bytes and
-reserve signatures for the messages that move people.
+Signing every message with ML-DSA-44 costs 31 times the airtime of TESLA.
+Signet keeps routine traffic at 16 to 48 bytes and reserves signatures for the
+messages that must stay attributable. These figures are computed from published
+sizes and the Semtech time-on-air formula; no radio has measured them yet.
 
 ## Where to go next
 
-- [Quick Start](guide/README.md) — build it, run the model
-- [Protocol overview](protocol/README.md) — how the two message classes work
-- [Time & the Security Condition](protocol/time.md) — the hardest open problem
-- [Threat Model](protocol/threat-model.md) — including what Signet does *not* defend
-- [Roadmap](roadmap/README.md) — what is built and what is not
+- [Quick Start](guide/README.md): build it, run the model
+- [Protocol overview](protocol/README.md): how the two message classes work
+- [Time & the Security Condition](protocol/time.md): the hardest open problem
+- [Threat Model](protocol/threat-model.md): including what Signet does *not* defend
+- [Roadmap](roadmap/README.md): what Signet takes on, and what is built
 
 ## Status
 
-Alpha and unaudited. Do not rely on it where being wrong has consequences.
-The design is written down in detail precisely so it can be attacked on paper
-before anyone trusts it in the field.
+Alpha and unaudited, with no radio yet. Do not rely on it where being wrong has
+consequences. The design is written down in full so it can be reviewed before
+anyone uses it in the field.

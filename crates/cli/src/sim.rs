@@ -1,11 +1,10 @@
-//! Airtime — the constrained-link cost model.
+//! Airtime: the constrained-link cost model.
 //!
 //! # What this answers
 //!
-//! Every off-grid mesh in existence uses classical signatures. Nobody has
-//! published what it costs to make one post-quantum, because the honest answer
-//! depends on a link nobody models: ~200 bytes per frame, lossy, broadcast, no
-//! reliable back-channel.
+//! The off-grid meshes in wide use authenticate with classical cryptography.
+//! What it would cost to make them post-quantum depends on the link: about 237
+//! bytes per frame, lossy, broadcast, with no reliable back-channel.
 //!
 //! This is that model. It exists to decide, with numbers, whether Signet's
 //! routine path should be TESLA hash chains or a compact post-quantum
@@ -16,19 +15,24 @@
 //! Airtime is a function of bytes, and the byte counts are published constants
 //! (FIPS 204/205/206 and the NIST round-3 candidates). Implementing ML-DSA to
 //! discover that its signature is 2420 bytes would tell us nothing the standard
-//! does not. CPU and battery cost *do* need real implementations — that is
-//! Radio work, on hardware, where measuring them is meaningful.
+//! does not. CPU and battery cost *do* need real implementations; that is
+//! Radio work, on real hardware.
 //!
 //! # Model
 //!
 //! - Frames are lost independently with probability `p`. Real meshes have
 //!   correlated loss (a passing truck kills a burst), which makes multi-frame
-//!   messages worse than modelled — so every result here is optimistic for the
+//!   messages worse than modelled, so every result here is optimistic for the
 //!   large-signature schemes. Burst loss lands with the hardware run.
-//! - Multi-frame objects are erasure coded, not retransmitted: send `n` frames
-//!   with `redundancy` extra, recover from any `n`. On a broadcast medium with
-//!   no back-channel this beats ARQ, and it is why published ML-KEM-over-LoRa
-//!   handshakes needing 28-62 frames are worse than they have to be.
+//! - Multi-frame objects are erasure coded, not retransmitted: `k` data frames
+//!   go out as `n` with `redundancy` extra, and any `k` of them recover the
+//!   object. On a broadcast medium with no back-channel this beats ARQ, and it
+//!   is why published ML-KEM-over-LoRa handshakes needing 28-62 frames are
+//!   worse than they have to be.
+//! - A multi-frame object is divided by the full MTU, although each fragment
+//!   frame also carries 13 + 7 bytes of Signet and fragment headers. That
+//!   undercounts frames for the largest signatures, which flatters them again;
+//!   see `PROTOCOL.md` §14.
 //! - Time-on-air uses the Semtech LoRa formula at Meshtastic's LongFast preset.
 //!   Per-frame preamble and header are why a 10-frame message costs far more
 //!   than 10x a 1-frame message's payload — counting bytes alone understates it.
@@ -75,12 +79,6 @@ const SCHEMES: &[Scheme] = &[
     Scheme {
         name: "MAYO-1",
         trailer: 392,
-        pq: true,
-        note: "NIST round 3",
-    },
-    Scheme {
-        name: "HAWK-512",
-        trailer: 555,
         pq: true,
         note: "NIST round 3",
     },

@@ -32,5 +32,5 @@ assignees: ''
 
 ## Notes
 
-<!-- Anything else. If this is a security issue, DO NOT file it here — report it
+<!-- Anything else. If this is a security issue, DO NOT file it here. Report it
      privately via the Security tab. See SECURITY.md. -->
