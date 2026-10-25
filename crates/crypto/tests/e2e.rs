@@ -20,7 +20,7 @@ use signet_crypto::{verify_cert, KeyPair};
 
 const STATUS: FactKind = 0;
 const EPOCH: u64 = 1_700_000_000_000;
-const MTU: usize = 237;
+const MTU: usize = 233;
 
 fn schedule() -> Schedule {
     Schedule::default_at(EPOCH)
@@ -258,7 +258,7 @@ fn an_over_confident_clock_is_the_dangerous_case() {
 
 #[test]
 fn a_cert_fragments_over_the_link_and_reassembles() {
-    // Certs are ~1.6 KiB against a 237-byte MTU. They travel out of band where
+    // Certs are ~1.6 KiB against a 233-byte MTU. They travel out of band where
     // possible, but a peer that missed onboarding has to fetch one over the air.
     let alice = Node::new(b"alice chain seed", Role::Responder);
     let encoded = alice.cert.encode();

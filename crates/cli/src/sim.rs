@@ -3,8 +3,9 @@
 //! # What this answers
 //!
 //! The off-grid meshes in wide use authenticate with classical cryptography.
-//! What it would cost to make them post-quantum depends on the link: about 237
-//! bytes per frame, lossy, broadcast, with no reliable back-channel.
+//! What it would cost to make them post-quantum depends on the link: 233
+//! bytes of application data per frame, lossy, broadcast, with no reliable
+//! back-channel.
 //!
 //! This is that model. It exists to decide, with numbers, whether Signet's
 //! routine path should be TESLA hash chains or a compact post-quantum
@@ -29,16 +30,18 @@
 //!   object. On a broadcast medium with no back-channel this beats ARQ, and it
 //!   is why published ML-KEM-over-LoRa handshakes needing 28-62 frames are
 //!   worse than they have to be.
-//! - A multi-frame object is divided by the full MTU, although each fragment
-//!   frame also carries 13 + 7 bytes of Signet and fragment headers. That
-//!   undercounts frames for the largest signatures, which flatters them again;
-//!   see `PROTOCOL.md` Section 14.
-//! - Time-on-air uses the Semtech LoRa formula at Meshtastic's LongFast preset.
+//! - A multi-frame object is split into fragments, and each fragment frame
+//!   spends 13 + 7 bytes of the MTU on Signet and fragment headers
+//!   (`PROTOCOL.md` Section 7.1), so a fragment carries MTU - 20 bytes.
+//! - Time-on-air uses the Semtech LoRa formula at Meshtastic's LongFast preset,
+//!   with Meshtastic's 16-symbol preamble and the bytes Meshtastic itself puts
+//!   on air outside the application payload.
 //!   Per-frame preamble and header are why a 10-frame message costs far more
 //!   than 10x a 1-frame message's payload — counting bytes alone understates it.
 
 use anyhow::{Context, Result};
 use clap::Args as ClapArgs;
+use signet_core::frag::FRAG_HEADER_LEN;
 use signet_core::session::BODY_LEN;
 use signet_core::wire::HEADER_LEN;
 use std::fmt::Write as _;
@@ -105,8 +108,9 @@ const SCHEMES: &[Scheme] = &[
 /// Simulator parameters.
 #[derive(ClapArgs)]
 pub struct Args {
-    /// Usable payload bytes per frame (Meshtastic caps app data near 237).
-    #[arg(long, default_value_t = 237)]
+    /// Usable payload bytes per frame (Meshtastic's `DATA_PAYLOAD_LEN`, 233
+    /// since protobufs v2.6.0).
+    #[arg(long, default_value_t = 233)]
     mtu: usize,
 
     /// Application payload bytes, on top of the 13-byte frame header and
@@ -203,7 +207,11 @@ pub fn run(args: &Args) -> Result<()> {
 
 fn model(s: &Scheme, args: &Args, loss: f64) -> Row {
     let total = HEADER_LEN + BODY_LEN + args.payload + s.trailer;
-    let data_frames = total.div_ceil(args.mtu);
+    let data_frames = if total <= args.mtu {
+        1
+    } else {
+        total.div_ceil(args.mtu - HEADER_LEN - FRAG_HEADER_LEN)
+    };
 
     // Single-frame messages get no erasure coding — there is nothing to code
     // across. Multi-frame objects pay for redundancy and recover from any k.
@@ -213,7 +221,11 @@ fn model(s: &Scheme, args: &Args, loss: f64) -> Row {
         (data_frames as f64 * (1.0 + args.redundancy)).ceil() as usize
     };
 
-    let per_frame_ms = lora_toa_ms(args.sf, args.bw * 1000, total.min(args.mtu) as u32);
+    let per_frame_ms = lora_toa_ms(
+        args.sf,
+        args.bw * 1000,
+        (total.min(args.mtu) + MESH_OVERHEAD) as u32,
+    );
     let airtime_ms = per_frame_ms * sent_frames as f64;
 
     let delivery = at_least_k_of_n(sent_frames, data_frames, 1.0 - loss);
@@ -292,13 +304,19 @@ fn print_table(args: &Args, loss: f64, rows: &[Row]) {
     }
 }
 
+/// Bytes Meshtastic puts on air around the application payload: its 16-byte
+/// packet header plus the `Data` protobuf's field tags. Taken as the gap between
+/// the radio's 255-byte maximum and `DATA_PAYLOAD_LEN` (255 - 233), so a full
+/// frame is exactly 255 bytes and shorter frames are slightly overcounted.
+const MESH_OVERHEAD: usize = 22;
+
 /// LoRa time-on-air in milliseconds (Semtech AN1200.13).
 ///
-/// Assumes explicit header, CRC on, 8-symbol preamble, CR 4/5 — Meshtastic's
-/// configuration. Low-data-rate optimisation switches on where the radio
+/// Assumes explicit header, CRC on, a 16-symbol preamble, CR 4/5 — Meshtastic's
+/// configuration (`RadioInterface.h`). Low-data-rate optimisation switches on where the radio
 /// mandates it, which is what makes SF11/SF12 disproportionately expensive.
 fn lora_toa_ms(sf: u32, bw_hz: u32, payload_bytes: u32) -> f64 {
-    const PREAMBLE_SYMS: f64 = 8.0;
+    const PREAMBLE_SYMS: f64 = 16.0;
     const CR: f64 = 1.0; // 4/5
     const CRC: f64 = 1.0;
     const IH: f64 = 0.0; // explicit header
@@ -383,7 +401,7 @@ mod tests {
         // 13B header + 7B body + 30B payload + 48B trailer = 98B. If this
         // ever needs two frames the cheap path stopped being cheap.
         let args = Args {
-            mtu: 237,
+            mtu: 233,
             payload: 30,
             loss: 0.2,
             redundancy: 0.3,
@@ -398,8 +416,10 @@ mod tests {
             .unwrap();
         assert_eq!(model(tesla, &args, 0.2).data_frames, 1);
 
+        // 2470 bytes over fragments that carry 233 - 20 = 213 each is 12
+        // frames. Dividing by the full MTU would give 11.
         let mldsa = SCHEMES.iter().find(|s| s.name == "ML-DSA-44").unwrap();
-        assert!(model(mldsa, &args, 0.2).data_frames > 1);
+        assert_eq!(model(mldsa, &args, 0.2).data_frames, 12);
     }
 
     #[test]

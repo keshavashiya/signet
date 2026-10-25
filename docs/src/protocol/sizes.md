@@ -32,26 +32,26 @@ level 1 (roughly AES-128 equivalent) in bytes.
 
 ## How these map to frames
 
-At Meshtastic's 237-byte application payload, with a 13-byte Signet header,
+At Meshtastic's 233-byte application payload, with a 13-byte Signet header,
 a 7-byte body header, and a 30-byte status beacon:
 
 | Trailer | Total | Frames | Comment |
 |---|---|---|---|
 | 16 (TESLA, typical) | 66 | 1 | Fits with room to spare |
 | 48 (TESLA, with disclosure) | 98 | 1 | First frame of each interval |
-| 200 (SQIsign) | 250 | 2 | Just over; a 17-byte payload would fit in one |
+| 200 (SQIsign) | 250 | 2 | Just over; a 13-byte payload would fit in one |
 | 464 (MAYO-1) | 514 | 3 | |
 | 666 (FN-DSA) | 716 | 4 | |
-| 2420 (ML-DSA) | 2470 | 11 | |
-| 7856 (SLH-DSA) | 7906 | 34 | Root certs only, never on the hot path |
+| 2420 (ML-DSA) | 2470 | 12 | |
+| 7856 (SLH-DSA) | 7906 | 38 | Root certs only, never on the hot path |
 
 The SQIsign row matters most: **a 200-byte signature misses a single frame by
-13 bytes**, and with a 17-byte payload it fits. If SQIsign were standardised,
+17 bytes**, and with a 13-byte payload it fits. If SQIsign were standardised,
 per-message post-quantum signatures would become viable here and this design
 would change substantially.
 
-Verify with `signet sim --payload 17`: SQIsign drops to one frame and its
-effective airtime to 2.4x TESLA's (2460 against 1027 ms), from 6x at a 30-byte
+Verify with `signet sim --payload 13`: SQIsign drops to one frame and its
+effective airtime to 2.1x TESLA's (2696 against 1262 ms), from 5x at a 30-byte
 payload.
 
 ## Why the simulator hardcodes these

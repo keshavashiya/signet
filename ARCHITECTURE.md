@@ -17,7 +17,7 @@ are already solved by the meshes it rides on.
 That constrains the design:
 
 - The frame header is 13 bytes, because every header byte is a payload byte
-  lost on a 237-byte link.
+  lost on a 233-byte link.
 - The core crate has three dependencies, all pure Rust, none of them a network
   or a runtime.
 - Nothing requires cooperation from the host transport beyond "carries opaque

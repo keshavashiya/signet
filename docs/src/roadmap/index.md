@@ -83,7 +83,7 @@ what both scenarios need before any work that serves only one of them.
 
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
-| **Airtime** | What authenticity costs on a 237-byte lossy link | ✅ done | `signet sim` |
+| **Airtime** | What authenticity costs on a 233-byte lossy link | ✅ done | `signet sim` |
 | **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
 | **Warnings** | Verified warnings that work in a disaster and in a shutdown | ⬜ next | One end-to-end test per scenario |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ | Measured airtime on two T-Beams |
@@ -94,14 +94,14 @@ what both scenarios need before any work that serves only one of them.
 
 ## Airtime ✅
 
-**Question:** what does authenticity cost on a 237-byte lossy link?
+**Question:** what does authenticity cost on a 233-byte lossy link?
 
 Answered without writing a line of post-quantum code, because airtime is a
 function of bytes and the bytes are published constants. Semtech time-on-air,
 closed-form binomial delivery, erasure-coded fragmentation, seven schemes.
 
-**Result:** TESLA costs 1129 ms of effective airtime per delivered message
-against 35 323 ms for ML-DSA-44. A **31x** difference, 95x for SLH-DSA-128s.
+**Result:** TESLA costs 1416 ms of effective airtime per delivered message
+against 43 226 ms for ML-DSA-44. A **31x** difference, 94x for SLH-DSA-128s.
 That decides the design: hash chains for routine traffic, and signatures only
 for messages that must stay attributable.
 

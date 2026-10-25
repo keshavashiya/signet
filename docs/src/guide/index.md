@@ -17,16 +17,16 @@ cargo run --bin signet -- sim
 ```
 
 ```text
-Signet airtime model — SF11 BW250kHz, MTU 237B, payload 30B, loss 20%, redundancy 30%
+Signet airtime model — SF11 BW250kHz, MTU 233B, payload 30B, loss 20%, redundancy 30%
 scheme             pq  trailer  frames    air ms  deliver    eff ms  note
 ----------------------------------------------------------------------------------------------------
-Ed25519            NO       64       1      1026    80.0%      1283  1x  what every mesh ships today
-TESLA (SHA-256)   yes       48       1       903    80.0%      1129  1x  16B MAC + 32B disclosed key
-SQIsign-I         yes      200     3/2      5904    89.6%      6590  6x  NIST round 3; slow to sign
-MAYO-1            yes      464     4/3      7873    81.9%      9610  9x  NIST round 3
-FN-DSA-512        yes      666     6/4     11809    90.1%     13105  12x  FIPS 206 draft
-ML-DSA-44         yes     2420   15/11     29522    83.6%     35323  31x  FIPS 204, the safe default
-SLH-DSA-128s      yes     7856   45/34     88566    82.6%    107238  95x  FIPS 205, hash-based root
+Ed25519            NO       64       1      1255    80.0%      1569  1x  what every mesh ships today
+TESLA (SHA-256)   yes       48       1      1133    80.0%      1416  1x  16B MAC + 32B disclosed key
+SQIsign-I         yes      200     3/2      6470    89.6%      7221  5x  NIST round 3; slow to sign
+MAYO-1            yes      464     4/3      8626    81.9%     10530  7x  NIST round 3
+FN-DSA-512        yes      666     6/4     12939    90.1%     14359  10x  FIPS 206 draft
+ML-DSA-44         yes     2420   16/12     34505    79.8%     43226  31x  FIPS 204, the safe default
+SLH-DSA-128s      yes     7856   50/38    107827    81.4%    132475  94x  FIPS 205, hash-based root
 ```
 
 **`eff ms`** is the column that matters: the expected airtime to deliver one
@@ -60,8 +60,8 @@ signet sim --sf 7 --bw 125
 signet sim --sweep --csv sim-out/airtime.csv
 ```
 
-Try `--payload 17`. SQIsign's 200-byte signature drops to a single frame and
-its effective airtime falls from 6x TESLA's to 2.4x. That boundary is why the
+Try `--payload 13`. SQIsign's 200-byte signature drops to a single frame and
+its effective airtime falls from 5x TESLA's to 2.1x. That boundary is why the
 NIST round-3 compact-signature candidates matter for this use case (see
 [Primitive Sizes](../protocol/sizes.md)).
 

@@ -394,14 +394,14 @@ mod tests {
         // The whole design rests on routine traffic being single-frame.
         // Worst case, carrying a disclosure:
         //   13 header + 7 body + 30 payload + 16 MAC + 32 key = 98 bytes.
-        // Typical case, MAC only: 66. Both well inside Meshtastic's 237.
+        // Typical case, MAC only: 66. Both well inside Meshtastic's 233.
         let (mut s, _) = pair();
         let with_key = s.beacon(STATUS, &[0u8; 30], at(4)).unwrap();
         let mac_only = s.beacon(STATUS, &[0u8; 30], at(4)).unwrap();
         assert_eq!(with_key.len(), 98);
         assert_eq!(mac_only.len(), 66);
         assert!(
-            with_key.len() <= 237,
+            with_key.len() <= 233,
             "a beacon no longer fits in one frame"
         );
     }

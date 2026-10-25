@@ -3,7 +3,7 @@
 //! # Why this exists
 //!
 //! A post-quantum signature costs 666 bytes (FN-DSA) to 2420 bytes (ML-DSA-44).
-//! A LoRa frame carries about 200 to 237. Signing every message is too
+//! A Meshtastic frame carries 233. Signing every message is too
 //! expensive on an off-grid mesh, so a post-quantum design needs a cheaper
 //! per-message path.
 //!

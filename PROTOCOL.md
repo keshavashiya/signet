@@ -78,7 +78,7 @@ These are inherited from the medium, not chosen:
 
 | Constraint | Value | Consequence |
 |---|---|---|
-| Frame payload | ~200–237 bytes | An ML-DSA signature spans 11 frames |
+| Frame payload | 233 bytes | An ML-DSA signature spans 12 frames |
 | Loss | 10–50%, bursty | No reliable back-channel; ARQ is expensive |
 | Topology | Broadcast flood | One sender, many unsynchronised receivers |
 | Clock | No NTP, no guaranteed GNSS | Anything time-dependent must degrade safely |
@@ -192,7 +192,7 @@ signature with a different one.
 ## 3. Frame format
 
 Fixed 13-byte header, with no options or TLVs, because every header byte is a
-payload byte lost on a 237-byte link.
+payload byte lost on a 233-byte link.
 
 ```text
  0                   1                   2                   3
@@ -743,11 +743,11 @@ Known open problems, numbered so other documents can cite them:
     payload included, although it would have verified later. Candidate: hash
     the anchor down to check the disclosure, ignore it and buffer the frame if
     it matches, and discard only on a mismatch. That changes R16 and R17.
-12. **The airtime model ignores per-fragment framing.** `signet sim` divides a
-    multi-frame object by the full 237-byte frame, but every fragment frame
-    spends 13 + 7 bytes on headers ([Section 7.1](#71-fragment-header)), so a fragment holds 217. The fix
-    waits on one `Signed` framing decision: whether a fragmented `Signed`
-    object carries its own 13-byte header.
+12. **How a fragmented `Signed` object is framed.** Every fragment frame
+    spends 13 + 7 bytes on headers ([Section 7.1](#71-fragment-header)), so a fragment holds 213, and
+    `signet sim` counts frames that way. Still open: whether a fragmented
+    `Signed` object carries its own 13-byte header. At LongFast settings the
+    choice changes no frame count in the model.
 13. **Trust roots beyond emergency services.** Any root a receiver pins works
     today, but the roles are civilian, responder and EOC, and the ✅ badge reads
     as official authority. In a shutdown the trusted sources are groups people

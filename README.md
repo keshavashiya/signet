@@ -32,7 +32,7 @@ git clone https://github.com/keshavashiya/signet.git
 cd signet
 cargo test --workspace     # 105 tests, no network, no hardware, no C toolchain
 
-# What does authenticity cost on a 237-byte lossy link?
+# What does authenticity cost on a 233-byte lossy link?
 cargo run --bin signet -- sim
 
 # Two nodes with real FN-DSA keys over a lossy channel
@@ -40,20 +40,20 @@ cargo run --bin signet -- demo --loss 30
 ```
 
 ```text
-Signet airtime model — SF11 BW250kHz, MTU 237B, payload 30B, loss 20%, redundancy 30%
+Signet airtime model — SF11 BW250kHz, MTU 233B, payload 30B, loss 20%, redundancy 30%
 scheme             pq  trailer  frames    air ms  deliver    eff ms  note
 ----------------------------------------------------------------------------------------------------
-Ed25519            NO       64       1      1026    80.0%      1283  1x  what every mesh ships today
-TESLA (SHA-256)   yes       48       1       903    80.0%      1129  1x  16B MAC + 32B disclosed key
-SQIsign-I         yes      200     3/2      5904    89.6%      6590  6x  NIST round 3; slow to sign
-MAYO-1            yes      464     4/3      7873    81.9%      9610  9x  NIST round 3
-FN-DSA-512        yes      666     6/4     11809    90.1%     13105  12x  FIPS 206 draft
-ML-DSA-44         yes     2420   15/11     29522    83.6%     35323  31x  FIPS 204, the safe default
-SLH-DSA-128s      yes     7856   45/34     88566    82.6%    107238  95x  FIPS 205, hash-based root
+Ed25519            NO       64       1      1255    80.0%      1569  1x  what every mesh ships today
+TESLA (SHA-256)   yes       48       1      1133    80.0%      1416  1x  16B MAC + 32B disclosed key
+SQIsign-I         yes      200     3/2      6470    89.6%      7221  5x  NIST round 3; slow to sign
+MAYO-1            yes      464     4/3      8626    81.9%     10530  7x  NIST round 3
+FN-DSA-512        yes      666     6/4     12939    90.1%     14359  10x  FIPS 206 draft
+ML-DSA-44         yes     2420   16/12     34505    79.8%     43226  31x  FIPS 204, the safe default
+SLH-DSA-128s      yes     7856   50/38    107827    81.4%    132475  94x  FIPS 205, hash-based root
 ```
 
 On this link, signing every message with ML-DSA-44 costs 31 times the effective
-airtime of a TESLA tag, and SLH-DSA-128s costs 95 times. That cost is the
+airtime of a TESLA tag, and SLH-DSA-128s costs 94 times. That cost is the
 problem Signet's design answers. The figures are computed from published
 signature sizes and the Semtech LoRa time-on-air formula; no radio has measured
 them yet, and [the simulator](#the-simulator) lists what the model leaves out.
@@ -273,10 +273,9 @@ out:
   retransmitted. On a broadcast medium with no back-channel this beats ARQ,
   and it is why published ML-KEM-over-LoRa handshakes needing 28–62 frames are
   worse than necessary.
-- **Per-fragment framing.** A multi-frame message is divided by the full 237
-  bytes, while each fragment frame also carries 20 bytes of Signet and fragment
-  headers, so the largest signatures need more frames than shown. This flatters
-  them too.
+- **Duty cycle and multi-hop.** Airtime is counted for one transmission on
+  one hop. Rebroadcasts multiply it, and regional duty-cycle limits are not
+  applied.
 
 ## Hard rules
 

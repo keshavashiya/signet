@@ -1,7 +1,7 @@
 //! The Signet frame header.
 //!
 //! 13 bytes, fixed, with no options or TLVs. Every byte here is a byte the
-//! payload does not get, on a link where the whole frame is about 237 bytes, so
+//! payload does not get, on a link where the whole frame is 233 bytes, so
 //! the header is kept small.
 //!
 //! ```text

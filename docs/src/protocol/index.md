@@ -35,7 +35,7 @@ computer to attack. Grover's algorithm would halve a chain value's preimage
 resistance, so chain values stay 256 bits. A MAC tag can be 128 bits, because
 each guess at a tag has to be checked by a receiver and Grover does not help.
 
-On a 237-byte link, a hash-only scheme is the post-quantum option that fits in
+On a 233-byte link, a hash-only scheme is the post-quantum option that fits in
 one frame.
 
 ## Why it suits a lossy link
@@ -65,7 +65,7 @@ bytes 20+   payload, then the class-specific trailer
 
 Certs are never sent on the hot path. Frames carry an 8-byte fingerprint, and
 a receiver gets the cert once, ideally out of band, then caches it. That keeps
-a 1.6 KiB credential off a 237-byte link.
+a 1.6 KiB credential off a 233-byte link.
 
 ## What is specified elsewhere
 

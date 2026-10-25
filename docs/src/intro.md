@@ -29,7 +29,7 @@ one that becomes unaffordable on a radio link once it has to be post-quantum:
   margin, which still leaves 128 bits.
 - **Key exchange is paid once** per pair of nodes and can be cached.
 - **Per-message signatures are what break.** ML-DSA-44's 2420-byte signature
-  spans eleven frames on a 237-byte link.
+  spans twelve frames on a 233-byte link.
 
 When the network is down, knowing who sent a message matters more than hiding
 it. "This bridge is out" has to come provably from the county emergency
@@ -43,12 +43,12 @@ preset with 20% frame loss:
 
 | Scheme | Post-quantum | Effective airtime | Ratio |
 |---|---|---|---|
-| Ed25519 | ❌ | 1 283 ms | 1x |
-| TESLA (SHA-256) | ✅ | **1 129 ms** | **1x** |
-| SQIsign-I | ✅ | 6 590 ms | 6x |
-| FN-DSA-512 | ✅ | 13 105 ms | 12x |
-| ML-DSA-44 | ✅ | 35 323 ms | 31x |
-| SLH-DSA-128s | ✅ | 107 238 ms | 95x |
+| Ed25519 | ❌ | 1 569 ms | 1x |
+| TESLA (SHA-256) | ✅ | **1 416 ms** | **1x** |
+| SQIsign-I | ✅ | 7 221 ms | 5x |
+| FN-DSA-512 | ✅ | 14 359 ms | 10x |
+| ML-DSA-44 | ✅ | 43 226 ms | 31x |
+| SLH-DSA-128s | ✅ | 132 475 ms | 94x |
 
 Signing every message with ML-DSA-44 costs 31 times the airtime of TESLA.
 Signet keeps routine traffic at 16 to 48 bytes and reserves signatures for the

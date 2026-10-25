@@ -7,8 +7,8 @@
 //!
 //! # Why FN-DSA-512
 //!
-//! The airtime model computes it: on a 237-byte link at 20% loss, a 666-byte
-//! FN-DSA signature costs 12x the effective airtime of a TESLA trailer, while
+//! The airtime model computes it: on a 233-byte link at 20% loss, a 666-byte
+//! FN-DSA signature costs 10x the effective airtime of a TESLA trailer, while
 //! ML-DSA-44's 2420-byte signature costs 31x. FN-DSA is the smallest signature
 //! NIST has selected for standardisation, which makes it the right primitive
 //! for the rare messages that genuinely need non-repudiation.
