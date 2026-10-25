@@ -225,9 +225,9 @@ Recorded so they are not argued again.
 
 | Considered | Rejected because |
 |---|---|
-| ML-DSA for all messages | 2420-byte signature = 11 frames = 31x the effective airtime. Computed by the airtime model from published sizes, not assumed; no radio measurement yet. |
+| ML-DSA for all messages | 2420-byte signature = 12 frames = 31x the effective airtime. Computed by the airtime model from published sizes, not assumed; no radio measurement yet. |
 | A CRDT library (Automerge, Yjs) | Each fact is keyed by its author, so two writers never conflict. A CRDT library would add thousands of lines for a problem the key scheme removes. |
-| ARQ for multi-frame objects | No reliable back-channel on a broadcast medium, so erasure coding is used instead. Published ML-KEM-over-LoRa work that retransmits needs 28–62 frames. |
+| ARQ for multi-frame objects | No reliable back-channel on a broadcast medium, so erasure coding is used instead. |
 | A revocation/status-list PKI | Requires the network that is missing. Short expiry is used instead. |
 | QKD | Needs fibre or line-of-sight optics, which a disaster mesh does not have. |
 | Building a new mesh | Several exist. Getting people to adopt one is harder than designing one. |

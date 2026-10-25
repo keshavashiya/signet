@@ -19,6 +19,7 @@ Implementations should pin a commit.
   of Signet and fragment headers. ML-DSA-44 stays at 31x TESLA's effective
   airtime and now needs 12 frames; SLH-DSA-128s is 94x, FN-DSA-512 10x, MAYO-1
   7x and SQIsign-I 5x, with SQIsign fitting one frame at payloads up to 13 bytes.
+
 - **SQIsign-I and MAYO-1 use their round-3 sizes.** SQIsign-I has an 83-byte
   key and 200-byte signature (v3.0 specification), not the 2020 paper's 64 and
   204; MAYO-1 is 1456 and 464, not 614 and 392. `signet sim`, README, PROTOCOL
@@ -112,6 +113,13 @@ Implementations should pin a commit.
 
   Verified byte-for-byte: the commitment, disclosed key, derived MAC key and
   truncated tag are identical before and after. **Nothing on the wire changed.**
+
+### Removed
+
+- **The claim that published ML-KEM-over-LoRa handshakes need 28–62 frames.**
+  No source for it could be found, so README, ARCHITECTURE, PROTOCOL Section 7
+  and the simulator's docs no longer make it. The case for erasure coding over
+  retransmission on a broadcast link stands without it.
 
 ### Added
 

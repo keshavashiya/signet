@@ -425,9 +425,6 @@ back-channel, sending redundancy beats negotiating repairs.
   overhead they cannot repay
 - At least one parity shard is always produced
 
-Published ML-KEM-over-LoRa handshakes that need 28–62 frames use
-retransmission instead.
-
 ### 7.1 Fragment header
 
 Seven bytes preceding each shard, inside a `Fragment`-class frame body:

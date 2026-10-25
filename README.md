@@ -270,9 +270,7 @@ out:
   bursts, which makes multi-frame messages worse than shown. Every number here
   flatters the large-signature schemes.
 - **Retransmission.** Multi-frame objects are erasure coded, not
-  retransmitted. On a broadcast medium with no back-channel this beats ARQ,
-  and it is why published ML-KEM-over-LoRa handshakes needing 28–62 frames are
-  worse than necessary.
+  retransmitted. On a broadcast medium with no back-channel this beats ARQ.
 - **Duty cycle and multi-hop.** Airtime is counted for one transmission on
   one hop. Rebroadcasts multiply it, and regional duty-cycle limits are not
   applied.

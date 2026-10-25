@@ -27,9 +27,7 @@
 //!   large-signature schemes. Burst loss lands with the hardware run.
 //! - Multi-frame objects are erasure coded, not retransmitted: `k` data frames
 //!   go out as `n` with `redundancy` extra, and any `k` of them recover the
-//!   object. On a broadcast medium with no back-channel this beats ARQ, and it
-//!   is why published ML-KEM-over-LoRa handshakes needing 28-62 frames are
-//!   worse than they have to be.
+//!   object. On a broadcast medium with no back-channel this beats ARQ.
 //! - A multi-frame object is split into fragments, and each fragment frame
 //!   spends 13 + 7 bytes of the MTU on Signet and fragment headers
 //!   (`PROTOCOL.md` Section 7.1), so a fragment carries MTU - 20 bytes.
