@@ -31,6 +31,6 @@ enum Command {
 fn main() -> Result<()> {
     match Cli::parse().command {
         Command::Sim(args) => sim::run(&args),
-        Command::Demo(args) => demo::run(&args),
+        Command::Demo(args) => demo::run(&args).map(|_| ()),
     }
 }

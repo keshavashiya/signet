@@ -28,6 +28,9 @@ Implementations should pin a commit.
   (PROTOCOL Section 13, R4). It checked the length first, so a short frame
   from another version was reported as truncated rather than as an unknown
   version. The receive order in Section 10 now lists the version first.
+- **`an_honest_clock_with_huge_uncertainty_refuses_everything` checks its
+  claim.** It only ran the demo; it now asserts that all eight frames arrive
+  and are refused, and none verifies. `demo::run` returns its counts for this.
 
 ### Changed
 

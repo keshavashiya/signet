@@ -42,7 +42,8 @@ pub struct Args {
     seed: u64,
 }
 
-pub fn run(args: &Args) -> Result<()> {
+/// Runs the demo and returns `(sent, dropped, verified, refused)`.
+pub fn run(args: &Args) -> Result<(usize, usize, usize, usize)> {
     if args.loss >= 100 {
         bail!("--loss must be under 100, got {}", args.loss);
     }
@@ -150,7 +151,7 @@ pub fn run(args: &Args) -> Result<()> {
         println!("  {refused} frames refused because the receiver could not rule out");
         println!("  that their keys were already public. That is the protocol working.");
     }
-    Ok(())
+    Ok((sent, dropped, merged, refused))
 }
 
 fn hex8(id: &[u8; 8]) -> String {
@@ -201,13 +202,15 @@ mod tests {
     fn an_honest_clock_with_huge_uncertainty_refuses_everything() {
         // Degradation, not failure: uncertainty wider than the disclosure
         // window means no frame can be shown to have beaten its key.
-        run(&Args {
+        let counts = run(&Args {
             loss: 0,
             intervals: 8,
             uncertainty_ms: 10 * 60 * 1000,
             seed: 42,
         })
         .unwrap();
+        // (sent, dropped, verified, refused): all eight arrive, none verifies.
+        assert_eq!(counts, (8, 0, 0, 8));
     }
 
     #[test]
