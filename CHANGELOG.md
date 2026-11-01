@@ -22,6 +22,13 @@ Implementations should pin a commit.
   `Schedule::disclosure_ms` adds in `u64`, so the top intervals no longer
   overflow `u32` (a panic in debug builds).
 
+### Fixed
+
+- **`Header::decode` reads the version nibble before anything else**
+  (PROTOCOL Section 13, R4). It checked the length first, so a short frame
+  from another version was reported as truncated rather than as an unknown
+  version. The receive order in Section 10 now lists the version first.
+
 ### Changed
 
 - **The airtime model follows Meshtastic's firmware.** `signet sim` now uses a

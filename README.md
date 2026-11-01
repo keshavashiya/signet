@@ -30,7 +30,7 @@ architecture, integration guides.
 ```bash
 git clone https://github.com/keshavashiya/signet.git
 cd signet
-cargo test --workspace     # 107 tests, no network, no hardware, no C toolchain
+cargo test --workspace     # 108 tests, no network, no hardware, no C toolchain
 
 # What does authenticity cost on a 233-byte lossy link?
 cargo run --bin signet -- sim
@@ -156,7 +156,7 @@ tests. Nothing has run on a radio yet.
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
 | **Airtime** | What authenticity costs on a lossy link | ✅ done | `signet sim` |
-| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 107 tests |
+| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 108 tests |
 | **Warnings** | Verified warnings that work in a disaster and in a shutdown | ⬜ next | one end-to-end test per scenario |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ | two T-Beams |
 | **Clock** | Time sync without infrastructure | ⬜ | the research contribution |

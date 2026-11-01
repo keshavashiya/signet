@@ -95,17 +95,26 @@ impl Header {
     /// Every failure mode here is reachable from the radio, so all of them are
     /// errors rather than panics or silent truncation.
     pub fn decode(buf: &[u8]) -> Result<(Self, &[u8])> {
+        // The version nibble is read before anything else (R4): another
+        // version may lay out the rest differently, so a short frame from it is
+        // an unknown version, not a truncated one.
+        let Some(&first) = buf.first() else {
+            return Err(Error::Truncated {
+                need: HEADER_LEN,
+                got: 0,
+            });
+        };
+        let version = first >> 4;
+        if version != VERSION {
+            return Err(Error::UnknownVersion(version));
+        }
         if buf.len() < HEADER_LEN {
             return Err(Error::Truncated {
                 need: HEADER_LEN,
                 got: buf.len(),
             });
         }
-        let version = buf[0] >> 4;
-        if version != VERSION {
-            return Err(Error::UnknownVersion(version));
-        }
-        let class = Class::from_u8(buf[0] & 0x0F)?;
+        let class = Class::from_u8(first & 0x0F)?;
 
         let mut sender = [0u8; SENDER_LEN];
         sender.copy_from_slice(&buf[1..9]);
@@ -158,9 +167,15 @@ mod tests {
 
     #[test]
     fn short_buffer_rejected() {
+        // A valid version nibble, so the length is what fails: the version is
+        // read first (R4), and an all-zero buffer is version 0.
         assert!(matches!(
-            Header::decode(&[0u8; 5]),
+            Header::decode(&header().encode()[..5]),
             Err(Error::Truncated { need: 13, got: 5 })
+        ));
+        assert!(matches!(
+            Header::decode(&[]),
+            Err(Error::Truncated { need: 13, got: 0 })
         ));
     }
 
@@ -172,6 +187,19 @@ mod tests {
             Header::decode(&raw),
             Err(Error::UnknownVersion(9))
         ));
+    }
+
+    #[test]
+    fn version_is_checked_before_length() {
+        // R4: a short frame from another version is an unknown version.
+        let mut raw = header().encode();
+        raw[0] = (9 << 4) | (Class::Tesla as u8);
+        for len in 1..HEADER_LEN {
+            assert!(matches!(
+                Header::decode(&raw[..len]),
+                Err(Error::UnknownVersion(9))
+            ));
+        }
     }
 
     #[test]

@@ -550,8 +550,8 @@ key to be disclosed and forges freely.
 
 ```text
  1. Decode the 13-byte header                                          Section 3
-      buffer too short ................................. Truncated
       version != 1 .................................... UnknownVersion
+      buffer too short ................................. Truncated
       class not in {0, 1, 2} .......................... UnknownClass
 
  2. Look up `sender` among pinned peers                                Section 2.4

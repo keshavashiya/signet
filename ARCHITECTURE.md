@@ -112,7 +112,7 @@ app: "Need help, 4 people"
 ```text
 frame from radio
   │
-  ├─> Header::decode  ──────────────> reject: truncated / bad version / bad class
+  ├─> Header::decode  ──────────────> reject: bad version / truncated / bad class
   ├─> peer pinned?             ─────> reject: UnknownSender
   ├─> interval in the future?  ─────> reject: TooEarly (no honest sender is ahead)
   ├─> check security condition ─────> reject: TooLate (key may be public)
@@ -210,7 +210,7 @@ built yet):
 Two, and both are enforced in code rather than convention:
 
 1. **The radio.** Everything arriving is hostile. `Header::decode` returns
-   `Result`, never panics, and rejects short buffers, unknown versions and
+   `Result`, never panics, and rejects unknown versions, short buffers and
    unknown classes before any field is read.
 2. **Authentication.** `Store::merge` trusts sequence numbers. That trust is
    only earned after the verification in

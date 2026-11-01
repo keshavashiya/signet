@@ -8,7 +8,7 @@ cd signet
 cargo test --workspace
 ```
 
-107 tests. If they pass, everything below will work.
+108 tests. If they pass, everything below will work.
 
 ## Run the model
 
