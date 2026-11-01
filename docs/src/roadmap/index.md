@@ -84,7 +84,7 @@ what both scenarios need before any work that serves only one of them.
 | Phase | Delivers | State | Artefact |
 |---|---|---|---|
 | **Airtime** | What authenticity costs on a 233-byte lossy link | ✅ done | `signet sim` |
-| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 105 tests |
+| **Protocol** | Chains, certs, clocks, fragmentation, sessions | ✅ done | `signet demo`, 107 tests |
 | **Warnings** | Verified warnings that work in a disaster and in a shutdown | ⬜ next | One end-to-end test per scenario |
 | **Radio** | Meshtastic over real LoRa hardware | ⬜ | Measured airtime on two T-Beams |
 | **Clock** | Time sync without infrastructure | ⬜ | The research contribution |

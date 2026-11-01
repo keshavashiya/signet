@@ -10,6 +10,18 @@ Implementations should pin a commit.
 
 ## [Unreleased]
 
+### Security
+
+- **A forged far-future interval no longer stalls the receiver.** The
+  security condition bounded how late a frame could arrive but not how early,
+  so one `Tesla` frame claiming interval `0xFFFF_FFFD` with a disclosure
+  attached made `verify_disclosure` hash about 2^32 times before anything was
+  authenticated. The sender fingerprint needed is in clear in every frame.
+  `Receiver::recv` now refuses an interval later than the latest possible
+  arrival as `Reject::TooEarly` (PROTOCOL Section 6.2, R28).
+  `Schedule::disclosure_ms` adds in `u64`, so the top intervals no longer
+  overflow `u32` (a panic in debug builds).
+
 ### Changed
 
 - **The airtime model follows Meshtastic's firmware.** `signet sim` now uses a

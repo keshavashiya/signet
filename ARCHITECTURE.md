@@ -114,6 +114,7 @@ frame from radio
   │
   ├─> Header::decode  ──────────────> reject: truncated / bad version / bad class
   ├─> peer pinned?             ─────> reject: UnknownSender
+  ├─> interval in the future?  ─────> reject: TooEarly (no honest sender is ahead)
   ├─> check security condition ─────> reject: TooLate (key may be public)
   ├─> validate attached disclosure ─> reject: BadDisclosure (before buffering)
   ├─> buffer, awaiting its key

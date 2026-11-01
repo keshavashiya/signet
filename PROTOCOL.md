@@ -380,6 +380,17 @@ t_arrival + uncertainty  <  t_interval_start(i) + d · interval_length
 sender. When it cannot be bounded, the condition cannot be evaluated, and the
 frame MUST be treated as unauthenticated.
 
+The same bound limits the other side. A frame cannot claim an interval later
+than the one containing its latest possible arrival:
+
+```text
+i  ≤  interval_at(t_arrival + uncertainty)
+```
+
+No honest sender fails this. A frame that does is refused as `TooEarly` before
+its disclosure is checked, because checking a disclosure costs one hash per
+interval between the anchor and `i`, and the interval index comes off the air.
+
 ### 6.3 Bounding uncertainty
 
 A local monotonic clock, tightened opportunistically. Only the interval
@@ -555,6 +566,7 @@ key to be disclosed and forges freely.
  5. Split body from trailer
       fewer bytes than the flags imply ................ Truncated
  6. Evaluate the security condition                                    Section 6.2
+      interval after the latest possible arrival ...... TooEarly
       fails, or no usable time bound .................. TooLate
  7. If a disclosure is attached, verify it chains and advances         Section 5.4
       does not chain, or does not advance ............. BadDisclosure
@@ -624,6 +636,7 @@ bytes actually held.
 | `WrongClass` | Well-formed, but not the class this path handles | [Section 4](#4-message-classes) |
 | `UnknownSender` | No pinned cert for this fingerprint | [Section 2.4](#24-trust-establishment) |
 | `TooLate` | Failed the security condition: the key could already be public | [Section 6.2](#62-the-security-condition) |
+| `TooEarly` | Claims an interval later than the latest possible arrival | [Section 6.2](#62-the-security-condition) |
 | `BadDisclosure` | Disclosure does not chain to the anchor, or does not advance it | [Section 5.4](#54-receiving) |
 
 ### 11.3 Silent drops
@@ -847,3 +860,4 @@ a codebase. Requirement text is compressed; the section is authoritative.
 | **R25** | Sequence numbers MUST NOT be trusted before authentication | [Section 9.2](#92-merge-semantics) |
 | **R26** | Implementations MUST NOT conflate decode errors with rejections | [Section 11](#11-errors-and-rejections) |
 | **R27** | Implementations SHOULD count MAC failures and SHOULD NOT display them individually | [Section 11.3](#113-silent-drops) |
+| **R28** | Receivers MUST refuse a `Tesla` frame whose interval is later than the latest possible arrival, before checking its disclosure | [Section 6.2](#62-the-security-condition) |

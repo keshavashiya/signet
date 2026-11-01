@@ -124,8 +124,13 @@ impl Schedule {
     ///
     /// Everything after this moment is forgeable by anyone, which is exactly
     /// what [`security_condition`] exists to keep out.
+    ///
+    /// `interval` comes off the air, so the sum is taken in `u64`: added in
+    /// `u32`, `interval + disclosure_delay` overflows near `u32::MAX`.
     pub fn disclosure_ms(&self, interval: u32) -> u64 {
-        self.interval_start_ms(interval + self.disclosure_delay)
+        let i = interval as u64 + self.disclosure_delay as u64;
+        self.epoch_ms
+            .saturating_add(i.saturating_mul(self.interval_ms as u64))
     }
 }
 
@@ -161,6 +166,13 @@ mod tests {
         assert_eq!(s.interval_at(s.epoch_ms + 29_999), 0);
         assert_eq!(s.interval_at(s.epoch_ms + 30_000), 1);
         assert_eq!(s.interval_start_ms(3), s.epoch_ms + 90_000);
+    }
+
+    #[test]
+    fn disclosure_time_does_not_overflow_at_the_top_interval() {
+        // An attacker picks the interval; u32::MAX must not panic or wrap.
+        let s = sched();
+        assert!(s.disclosure_ms(u32::MAX) > s.disclosure_ms(u32::MAX - 1));
     }
 
     #[test]

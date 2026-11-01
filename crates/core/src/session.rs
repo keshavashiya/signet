@@ -72,6 +72,9 @@ pub enum Reject {
     UnknownSender,
     /// Failed the security condition — its key could already be public.
     TooLate,
+    /// Claims an interval later than the latest possible arrival, which no
+    /// honest sender can produce.
+    TooEarly,
     /// Attached disclosure did not chain to the anchor, or did not advance it.
     BadDisclosure,
 }
@@ -235,6 +238,12 @@ impl Receiver {
         }
         if !self.peers.contains_key(&header.sender) {
             return Ok(Outcome::Rejected(Reject::UnknownSender));
+        }
+        // No honest sender is ahead of the latest possible arrival. Without
+        // this bound, one forged far-future interval makes verify_disclosure
+        // hash up to 2^32 times before anything is authenticated.
+        if header.interval > self.schedule.interval_at(arrival.latest_ms) {
+            return Ok(Outcome::Rejected(Reject::TooEarly));
         }
         if !security_condition(&self.schedule, header.interval, &arrival) {
             return Ok(Outcome::Rejected(Reject::TooLate));
@@ -517,6 +526,24 @@ mod tests {
             r.recv(&f2, late).unwrap(),
             Outcome::Rejected(Reject::TooLate)
         );
+        assert_eq!(r.pending(&ALICE), 0);
+    }
+
+    #[test]
+    fn frame_from_the_future_is_refused_before_any_hashing() {
+        // A forged far-future interval with a disclosure attached would make
+        // verify_disclosure walk ~2^32 hashes; this test would hang, not fail.
+        let (mut s, mut r) = pair();
+        let f3 = s.beacon(STATUS, b"x", at(3)).unwrap();
+        for interval in [4, 0xFFFF_FFFD, u32::MAX] {
+            let mut forged = f3.clone();
+            forged[9..13].copy_from_slice(&interval.to_be_bytes());
+            assert_eq!(
+                r.recv(&forged, TimeBound::exact(at(3))).unwrap(),
+                Outcome::Rejected(Reject::TooEarly),
+                "interval {interval}"
+            );
+        }
         assert_eq!(r.pending(&ALICE), 0);
     }
 
