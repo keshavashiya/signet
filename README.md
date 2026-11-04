@@ -65,12 +65,13 @@ them yet, and [the simulator](#the-simulator) lists what the model leaves out.
 | System | Crypto today | Post-quantum? |
 |---|---|---|
 | [Bitchat](https://github.com/permissionlesstech/bitchat) | Curve25519 (Noise XX) | ❌ |
-| [Meshtastic](https://meshtastic.org) | Curve25519 + AES-256-CTR | ❌ |
+| [Meshtastic](https://meshtastic.org) | X25519 / Ed25519 (XEdDSA) / AES-256 | ❌ |
 | [Reticulum](https://reticulum.network) | X25519 / Ed25519 / AES-256 | ❌ |
 | [Briar](https://briarproject.org) | Ed25519 / X25519 | ❌ |
 
-Meshtastic's documentation says quantum-resistant key exchange *"doesn't fit
-LoRa packet constraints."*
+Meshtastic's documentation says its key exchange and signatures are not
+quantum-resistant *"because quantum-resistant schemes don't fit in LoRa packets
+or on Meshtastic hardware."*
 
 Of the three jobs a mesh's cryptography does, per-message authentication is the
 one that becomes unaffordable on a radio link once it has to be post-quantum:

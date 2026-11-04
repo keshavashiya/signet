@@ -20,7 +20,9 @@ forbid encoding a message to hide its meaning. The name also reads as SIG + NET.
 
 The off-grid meshes in wide use authenticate with classical elliptic-curve
 cryptography, which a quantum computer would break. Meshtastic's documentation
-says quantum-resistant key exchange *"doesn't fit LoRa packet constraints."*
+says its key exchange and signatures are not quantum-resistant *"because
+quantum-resistant schemes don't fit in LoRa packets or on Meshtastic
+hardware."*
 
 Of the three jobs a mesh's cryptography does, per-message authentication is the
 one that becomes unaffordable on a radio link once it has to be post-quantum:

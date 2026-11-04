@@ -34,6 +34,12 @@ Implementations should pin a commit.
 
 ### Changed
 
+- **Meshtastic's documentation is quoted as it reads now.** The README and the
+  book's introduction quote the current wording (*"quantum-resistant schemes
+  don't fit in LoRa packets or on Meshtastic hardware"*), and the README's
+  comparison table lists the Ed25519 (XEdDSA) broadcast signing Meshtastic
+  added in firmware 2.8.
+
 - **PROTOCOL.md Section 14 gains item 17: peer exchange has no way to obtain
   an honest bound.** A one-way timestamp can be delayed without detection,
   which makes a receiver think it is earlier than it is. The candidate is
