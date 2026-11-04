@@ -790,6 +790,24 @@ Known open problems, numbered so other documents can cite them:
     verifiable as coming from some member of a group, without saying which
     member, needs group or ring signatures or anonymous credentials. Open
     research, not a planned feature.
+17. **Peer exchange has no way to obtain an honest bound.**
+    [Section 6.3](#63-bounding-uncertainty) has nodes trade bounds on contact,
+    but a timestamp received one way cannot be checked. An attacker who holds a
+    peer's message back by Δ makes the receiver believe it is Δ earlier than it
+    is, the direction that reopens the forgery window, and nothing in a one-way
+    message reveals the delay. Correcting for distance, as GNSS does, does not
+    help: radio crosses 10 km in about 33 µs, against seconds of airtime and
+    relay queueing. Candidate: the direct synchronisation of
+    [RFC 4082](https://www.rfc-editor.org/rfc/rfc4082) Section 3.3.1. A sends a
+    fresh nonce at local time `t1`; B replies with its time `T` and the nonce,
+    signed; A receives the reply at `t4` and holds B's clock between `T` and
+    `T + (t4 − t1)`. A delay only widens that bound, and the nonce stops a
+    replayed reply. Costs: one `Signed` reply per exchange, a return path the
+    flood network may not have ([Section 7](#7-fragmentation)), and duty-cycle
+    budget, so the exchange is rare and the local monotonic bound carries a
+    node between exchanges. Still open: how often a node can afford it. The
+    exchange proves the reply is fresh, not that B is honest, so item 7 still
+    applies.
 
 ---
 

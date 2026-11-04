@@ -64,7 +64,11 @@ and not built yet.
 
 This is the mesh-native answer. When two nodes come into range, which they must
 do to exchange messages at all, they trade clock estimates *with their
-uncertainty intervals* and take the intersection.
+uncertainty intervals* and take the intersection. How a node gets an honest
+interval from a peer is not yet specified: a one-way timestamp can be delayed
+without detection, so the candidate is a signed round trip with a nonce, in
+which a delay only widens the bound
+([PROTOCOL.md Section 14](https://github.com/keshavashiya/signet/blob/main/PROTOCOL.md#14-open-questions) item 17).
 
 A node with a GNSS fix has a very tight interval and spreads that tightness to
 the nodes it meets as it moves. A node that has been in a basement for two days has a
@@ -155,3 +159,7 @@ convincingly, which is why it is not in `signet sim`.
    assumption about `f`?
 4. **Clock rollback attacks.** If an attacker controls a device's RTC, do the
    monotonic guarantees survive a reboot?
+5. **The cost of an honest peer bound.** A signed round trip with a nonce
+   gives a bound a delay can only widen, but each exchange costs one `Signed`
+   reply, a return path and duty-cycle budget. How often can a node afford
+   one, and how wide does its bound grow in between?

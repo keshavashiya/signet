@@ -34,6 +34,12 @@ Implementations should pin a commit.
 
 ### Changed
 
+- **PROTOCOL.md Section 14 gains item 17: peer exchange has no way to obtain
+  an honest bound.** A one-way timestamp can be delayed without detection,
+  which makes a receiver think it is earlier than it is. The candidate is
+  RFC 4082's direct synchronisation, a signed round trip with a nonce, in which
+  a delay only widens the bound. `time.md` names it as open sub-problem 5.
+
 - **The airtime model follows Meshtastic's firmware.** `signet sim` now uses a
   233-byte frame (`DATA_PAYLOAD_LEN` since protobufs v2.6.0; 237 was v2.5), a
   16-symbol preamble (`RadioInterface.h`), the 22 bytes Meshtastic puts on air

@@ -201,7 +201,8 @@ The main open research question, and the hardest problem. See
 [Time & the Security Condition](../protocol/time.md).
 
 - Uncertainty tracking with interval arithmetic
-- Opportunistic tightening: GNSS, peer exchange, beacon floor
+- Opportunistic tightening: GNSS, peer exchange by signed round trip
+  (item 17), beacon floor
 - Dynamic disclosure delay, with fallback to `Signed` past threshold
 
 The *check* already exists in `signet-core::time`. What is missing is the
